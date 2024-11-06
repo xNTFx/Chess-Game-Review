@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import _ from "lodash";
 
-import { ChessComGame } from "../../../types/chessCom";
+import { ChessComGame } from "../../../types/chessWebsites";
 
 const fetchChessComUserRecentGames = async (
   username: string | null,
