@@ -122,7 +122,7 @@ export const getPieceValue = (piece: PieceSymbol): number => {
     case "q":
       return 9;
     default:
-      return 0;
+      return 1;
   }
 };
 

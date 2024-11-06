@@ -231,6 +231,8 @@ const isBrilliantMove = (
   const fromSquare = playedMove.slice(0, 2) as Square;
   const movedPiece = game.get(fromSquare);
 
+  if (game.isCheck()) return false; // If the previous move was a check, the current move cannot be brilliant
+
   if (!movedPiece) return false;
 
   const winPercentageDiff =
