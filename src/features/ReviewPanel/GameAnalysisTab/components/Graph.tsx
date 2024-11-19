@@ -114,7 +114,7 @@ export default function Graph() {
   };
 
   return (
-    <div className="my-1 grid w-full pb-4">
+    <div className="my-1 grid w-full pb-2">
       <div className="w-full rounded-xl border-4 bg-black">
         <ResponsiveContainer width="100%" height={150}>
           <AreaChart
