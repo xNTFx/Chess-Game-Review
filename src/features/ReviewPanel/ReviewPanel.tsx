@@ -54,20 +54,20 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
           ) : null}
         </div>
         {!isGameDataLoaded ? (
-          <div className="flex flex-col gap-2 p-2">
+          <div className="flex flex-col gap-8">
             <p className="text-center text-xl">
               <b>
                 Press the 'Load Game' button to import a game from Lichess,
                 Chess.com, or a PGN.
               </b>
             </p>
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center gap-4">
               <p className="text-xl">
                 <b>Example games</b>
               </p>
-            </div>
-            <div>
-              <ExampleGames />
+              <div className="w-full">
+                <ExampleGames />
+              </div>
             </div>
           </div>
         ) : null}
