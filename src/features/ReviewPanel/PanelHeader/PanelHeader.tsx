@@ -14,8 +14,8 @@ export default function PanelHeader() {
 
   return (
     <div className="flex w-full flex-col items-center">
-      <div className="flex w-full items-center justify-center space-x-2">
-        <h1 className="text-center text-xl">
+      <div className="flex w-full items-center justify-center p-1">
+        <h1 className="text-center text-2xl">
           <b>Game Review</b>
         </h1>
       </div>

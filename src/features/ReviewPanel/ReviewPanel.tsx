@@ -2,6 +2,7 @@ import { useAtom, useAtomValue } from "jotai";
 
 import { useEvaluateCurrentPosition } from "../../hooks/useEvaluateCurrentPosition";
 import {
+  boardAtom,
   currentTabAtom,
   engineNameAtom,
   gameEvalAtom,
@@ -23,6 +24,10 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
   const engineName = useAtomValue(engineNameAtom);
   const position = useEvaluateCurrentPosition(engineName);
   const [evalResult] = useAtom(gameEvalAtom);
+  const game = useAtomValue(boardAtom);
+
+  console.log("pos ", position, game);
+  console.log(game.history().length === 0 && game.moveNumber() <= 1);
 
   return (
     <div className="lx:w-[35rem] getPieceValue h-full w-full flex-col items-center bg-slate-700 p-0 xl:p-6">
@@ -53,7 +58,9 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
             </div>
           ) : null}
         </div>
-        {!isGameDataLoaded ? (
+        {!isGameDataLoaded &&
+        game.history().length === 0 &&
+        game.moveNumber() <= 1 ? (
           <div className="flex flex-col gap-8">
             <p className="text-center text-xl">
               <b>
