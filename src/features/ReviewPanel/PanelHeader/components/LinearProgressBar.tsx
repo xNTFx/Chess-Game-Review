@@ -21,9 +21,12 @@ const LinearProgressBar = ({ value, label }: ProgressBarProps) => {
           return value;
         }
         const increment = (value - prevValue) / 10;
-        animationFrame = requestAnimationFrame(updateValue);
-        return prevValue + increment;
+        const newValue = prevValue + increment;
+
+        return Math.max(newValue, prevValue);
       });
+
+      animationFrame = requestAnimationFrame(updateValue);
     };
 
     updateValue();
