@@ -26,9 +26,6 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
   const [evalResult] = useAtom(gameEvalAtom);
   const game = useAtomValue(boardAtom);
 
-  console.log("pos ", position, game);
-  console.log(game.history().length === 0 && game.moveNumber() <= 1);
-
   return (
     <div className="lx:w-[35rem] getPieceValue h-full w-full flex-col items-center bg-slate-700 p-0 xl:p-6">
       <div className="mb-[3.5rem] flex w-full flex-col items-center gap-2 overflow-auto rounded-t-lg border-2 shadow-lg xl:mb-0 xl:h-[52rem]">

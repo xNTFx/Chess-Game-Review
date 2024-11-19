@@ -81,7 +81,6 @@ export default function MovesTab() {
       const offset = 10; // Offset for better visibility and smooth transition between move chessboards
 
       let topPosition = buttonRect.bottom + window.scrollY;
-      console.log(topPosition);
 
       // Check if the chessboard would be outside the container bottom
       if (

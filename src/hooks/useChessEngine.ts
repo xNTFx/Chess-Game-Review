@@ -148,7 +148,9 @@ function createEngine(
       const result = await evaluatePosition(fen, depth); // Evaluate the position
       positions.push(result);
       setEvaluationProgress?.(
-        99 - Math.exp(-4 * (fens.indexOf(fen) / fens.length)) * 99, // Smooth non-linear progress update
+        fens.indexOf(fen) === fens.length - 1
+          ? 100
+          : (1 - Math.exp(-6 * (fens.indexOf(fen) / fens.length))) * 100, // Smooth non-linear progress update
       );
     }
 

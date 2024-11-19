@@ -14,21 +14,22 @@ const LinearProgressBar = ({ value, label }: ProgressBarProps) => {
       return;
     }
 
-    if (value > displayValue) {
-      const interval = setInterval(() => {
-        setDisplayValue((prevValue) => {
-          const increment = (value - prevValue) / 10;
-          if (Math.abs(value - prevValue) < 0.1) {
-            clearInterval(interval);
-            return value;
-          }
-          return prevValue + increment;
-        });
-      }, 50);
+    let animationFrame: number;
+    const updateValue = () => {
+      setDisplayValue((prevValue) => {
+        if (Math.abs(value - prevValue) < 0.1) {
+          return value;
+        }
+        const increment = (value - prevValue) / 10;
+        animationFrame = requestAnimationFrame(updateValue);
+        return prevValue + increment;
+      });
+    };
 
-      return () => clearInterval(interval);
-    }
-  }, [value, displayValue]);
+    updateValue();
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value]);
 
   if (value === null) return null;
 
