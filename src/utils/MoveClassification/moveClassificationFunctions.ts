@@ -1,5 +1,6 @@
 import { Chess, PieceSymbol, Square } from "chess.js";
 
+import { LineEval } from "../../types/eval";
 import {
   getMaterialDifference,
   getPieceValue,
@@ -105,7 +106,11 @@ export const getIsPieceSacrifice = (
   }
 
   // Final check based on attacker value
-  if (valueOfCapturedPiece < attackersArray[0]) return true;
+  if (
+    valueOfCapturedPiece < attackersArray[0] &&
+    pieceValue > valueOfCapturedPiece
+  )
+    return true;
 
   return false;
 };
@@ -312,6 +317,44 @@ const getPawnDefenseSquares = (sqr: Square, color: string): Square[] => {
 
   return defendedSquares;
 };
+
+// Determines whether the played move is significant compared to other possible continuations
+export function isMoveSignificant(
+  lines: LineEval[],
+  playedMove: string,
+  isWhiteMove: boolean,
+  disadvantageThreshold: number,
+) {
+  if (lines.length === 0) return false;
+
+  // Filter lines to only include non-losing moves for the current player
+  const nonLosingLines = isWhiteMove
+    ? lines.filter(
+        (line) => line.cp !== undefined && line.cp >= -disadvantageThreshold,
+      )
+    : lines.filter(
+        (line) => line.cp !== undefined && line.cp <= disadvantageThreshold,
+      );
+
+  // Identify the best line (highest evaluation) and separate the remaining lines
+  const bestLine = lines[0];
+  const bestLineCp = bestLine.cp;
+
+  if (bestLineCp === undefined || nonLosingLines.length === 0) return false;
+
+  const otherLines = lines.slice(1);
+
+  // Check if there is a significant gap between the best line and all other lines
+  const significantGap = otherLines.every(
+    (line) =>
+      line.cp !== undefined &&
+      Math.abs(bestLineCp - line.cp) > disadvantageThreshold,
+  );
+
+  // Return true only if there is a significant gap and the first move
+  // in the non-losing lines matches the played move
+  return significantGap && nonLosingLines[0].pv[0] === playedMove;
+}
 
 // All possible chessboard squares
 // prettier-ignore

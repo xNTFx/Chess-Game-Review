@@ -10,6 +10,7 @@ import {
 } from "../winProbability";
 import {
   getIsPieceSacrifice,
+  isMoveSignificant,
   isSimplePieceRecapture,
 } from "./moveClassificationFunctions";
 
@@ -83,6 +84,7 @@ const getMovesClassification = (
         playedMove,
         fens[index - 1],
         lastPositionAlternativeLineWinPercentage,
+        lines,
       )
     ) {
       return {
@@ -226,6 +228,7 @@ const isBrilliantMove = (
   playedMove: string,
   fen: string,
   lastPositionAlternativeLineWinPercentage: number | undefined,
+  lines: LineEval[],
 ): boolean => {
   const game = new Chess(fen);
   const fromSquare = playedMove.slice(0, 2) as Square;
@@ -239,7 +242,15 @@ const isBrilliantMove = (
     (positionWinPercentage - lastPositionWinPercentage) *
     (isWhiteMove ? 1 : -1);
 
-  if (winPercentageDiff <= -50) return false;
+  // Threshold for a significant disadvantage
+  const disadvantageThreshold = 100;
+
+  // Check if the move caused a significant loss and wasn't strategically significant
+  if (
+    winPercentageDiff <= -50 &&
+    !isMoveSignificant(lines, playedMove, isWhiteMove, disadvantageThreshold)
+  )
+    return false;
 
   if (!lastPositionAlternativeLineWinPercentage) return false;
 
@@ -327,7 +338,12 @@ const isGreatMove = (
     return false;
   }
 
+  // Threshold for a significant disadvantage
   const disadvantageThreshold = 100;
+
+  // Determines whether the played move is significant compared to other possible continuations
+  isMoveSignificant(lines, playedMove, isWhiteMove, disadvantageThreshold);
+
   const nonLosingLines = isWhiteMove
     ? lines.filter((line) => line.cp !== undefined && line.cp >= -100)
     : lines.filter((line) => line.cp !== undefined && line.cp <= 100);
