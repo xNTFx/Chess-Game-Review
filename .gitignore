@@ -7,10 +7,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & builds
 node_modules
 dist
 dist-ssr
 *.local
+
+# TypeScript build cache
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
