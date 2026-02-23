@@ -8,6 +8,7 @@ import {
   evaluationProgressAtom,
   gameAtom,
   gameEvalAtom,
+  liveEvalCacheAtom,
   savedEvalsAtom,
 } from "../../../../stores/states";
 import { SavedEvals } from "../../../../types/eval";
@@ -22,6 +23,7 @@ export default function useAnalyze() {
   const [evalResult, setEvalResult] = useAtom(gameEvalAtom);
   const currentGame = useAtomValue(gameAtom);
   const saveEvaluations = useSetAtom(savedEvalsAtom);
+  const setLiveEvalCache = useSetAtom(liveEvalCacheAtom);
 
   const canAnalyze =
     chessEngine?.isReady() && currentGame.history().length > 0 && !evalProgress;
@@ -35,6 +37,10 @@ export default function useAnalyze() {
     ) {
       return;
     }
+
+    // Clear stale partial live-eval entries so that the fresh gameEval result
+    // (computed below) is not overridden by an incomplete cached partial eval.
+    setLiveEvalCache({});
 
     const newEvaluation = await chessEngine.evaluateGame({
       ...evaluateParams,

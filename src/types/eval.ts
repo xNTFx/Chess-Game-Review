@@ -64,3 +64,8 @@ export interface SavedEval {
 }
 
 export type SavedEvals = Record<string, SavedEval | undefined>;
+
+export interface LiveEvalEntry {
+  eval: PositionEval;
+  lastEval?: PositionEval;
+}

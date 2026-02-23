@@ -1,5 +1,5 @@
 import { Chess, Square } from "chess.js";
-import { PrimitiveAtom, atom, useAtomValue, useSetAtom } from "jotai";
+import { Atom, PrimitiveAtom, atom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
@@ -32,7 +32,7 @@ export interface Props {
   whitePlayer?: string;
   blackPlayer?: string;
   boardOrientation?: Color;
-  currentPositionAtom?: PrimitiveAtom<CurrentPosition>;
+  currentPositionAtom?: Atom<CurrentPosition>;
   showBestMoveArrow?: boolean;
   isShowMoveClassificationEnabledAtom?: PrimitiveAtom<boolean>;
   showEvaluationBar?: boolean;

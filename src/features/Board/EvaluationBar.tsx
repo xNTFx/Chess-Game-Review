@@ -1,4 +1,4 @@
-import { PrimitiveAtom, atom, useAtomValue } from "jotai";
+import { Atom, PrimitiveAtom, atom, useAtomValue } from "jotai";
 import { useEffect, useState } from "react";
 
 import { Color } from "../../types/enums";
@@ -7,7 +7,7 @@ import { getEvaluationBarValue } from "../../utils/chessUtils";
 
 interface Props {
   boardOrientation?: Color;
-  currentPositionAtom?: PrimitiveAtom<CurrentPosition>;
+  currentPositionAtom?: Atom<CurrentPosition>;
 }
 
 export default function EvaluationBar({

@@ -1,5 +1,5 @@
 import { Chess } from "chess.js";
-import { PrimitiveAtom, atom, useAtomValue } from "jotai";
+import { Atom, PrimitiveAtom, atom, useAtomValue } from "jotai";
 import { useMemo } from "react";
 import React from "react";
 import { SquareRenderer } from "react-chessboard";
@@ -9,7 +9,7 @@ import { CurrentPosition } from "../../types/eval";
 import { moveClassificationColors } from "../../utils/chessUtils";
 
 export interface Props {
-  currentPositionAtom: PrimitiveAtom<CurrentPosition>;
+  currentPositionAtom: Atom<CurrentPosition>;
   clickedSquaresAtom: PrimitiveAtom<string[]>;
   playableSquaresAtom: PrimitiveAtom<string[]>;
   isShowMoveClassificationEnabledAtom?: PrimitiveAtom<boolean>;

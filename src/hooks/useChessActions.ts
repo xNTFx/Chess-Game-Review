@@ -4,7 +4,7 @@ import { useCallback } from "react";
 
 import {
   clickedSquaresAtom,
-  currentPositionAtom,
+  currentMoveIdxAtom,
   howManyTimesPlayerMovedByBoardAtom,
   playableSquaresAtom,
 } from "../stores/states";
@@ -23,7 +23,7 @@ export interface resetGameParams {
 
 export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
   const [game, setGame] = useAtom(chessAtom);
-  const [, setCurrentPosition] = useAtom(currentPositionAtom);
+  const setCurrentMoveIdx = useSetAtom(currentMoveIdxAtom);
   const [howManyTimesPlayerMovedByBoard, setHowManyTimesPlayerMovedByBoard] =
     useAtom(howManyTimesPlayerMovedByBoardAtom);
   const setClickedSquares = useSetAtom(clickedSquaresAtom);
@@ -33,10 +33,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     (pgn: string) => {
       const newGame = new Chess();
       newGame.loadPgn(stripPgnComments(pgn));
-      setCurrentPosition((prev) => ({
-        ...prev,
-        currentMoveIdx: 0,
-      }));
+      setCurrentMoveIdx(0);
 
       setHowManyTimesPlayerMovedByBoard(0);
       setClickedSquares([]);
@@ -46,7 +43,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     },
     [
       setGame,
-      setCurrentPosition,
+      setCurrentMoveIdx,
       setHowManyTimesPlayerMovedByBoard,
       setClickedSquares,
       setPlayableSquares,
@@ -56,10 +53,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
   const resetBoardPosition = useCallback(
     (params?: resetGameParams) => {
       const newGame = new Chess(params?.fen);
-      setCurrentPosition((prev) => ({
-        ...prev,
-        currentMoveIdx: 0,
-      }));
+      setCurrentMoveIdx(0);
 
       setHowManyTimesPlayerMovedByBoard(0);
       setClickedSquares([]);
@@ -69,7 +63,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     },
     [
       setGame,
-      setCurrentPosition,
+      setCurrentMoveIdx,
       setHowManyTimesPlayerMovedByBoard,
       setClickedSquares,
       setPlayableSquares,
@@ -104,10 +98,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
       try {
         const result = newGame.move(move);
         if (!isPlayerMove) {
-          setCurrentPosition((prev) => ({
-            ...prev,
-            currentMoveIdx: newGame.history().length,
-          }));
+          setCurrentMoveIdx(newGame.history().length);
         } else {
           setHowManyTimesPlayerMovedByBoard((prev) => (prev += 1));
         }
@@ -124,7 +115,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     [
       copyGame,
       setGame,
-      setCurrentPosition,
+      setCurrentMoveIdx,
       setHowManyTimesPlayerMovedByBoard,
       setClickedSquares,
       setPlayableSquares,
@@ -151,10 +142,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
         });
 
         if (!isPlayerMove) {
-          setCurrentPosition((prev) => ({
-            ...prev,
-            currentMoveIdx: newGame.history().length,
-          }));
+          setCurrentMoveIdx(newGame.history().length);
         } else {
           setHowManyTimesPlayerMovedByBoard((prev) => prev + 1);
         }
@@ -176,7 +164,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     [
       copyGame,
       setGame,
-      setCurrentPosition,
+      setCurrentMoveIdx,
       setHowManyTimesPlayerMovedByBoard,
       setClickedSquares,
       setPlayableSquares,
@@ -188,10 +176,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     newGame.undo();
 
     if (howManyTimesPlayerMovedByBoard <= 0) {
-      setCurrentPosition((prev) => ({
-        ...prev,
-        currentMoveIdx: newGame.history().length,
-      }));
+      setCurrentMoveIdx(newGame.history().length);
     } else {
       setHowManyTimesPlayerMovedByBoard((prev) => (prev -= 1));
     }
@@ -202,7 +187,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
   }, [
     copyGame,
     setGame,
-    setCurrentPosition,
+    setCurrentMoveIdx,
     howManyTimesPlayerMovedByBoard,
     setHowManyTimesPlayerMovedByBoard,
     setClickedSquares,
@@ -224,10 +209,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
         lastMove = newGame.undo();
       }
 
-      setCurrentPosition((prev) => ({
-        ...prev,
-        currentMoveIdx: newGame.history().length,
-      }));
+      setCurrentMoveIdx(newGame.history().length);
 
       setHowManyTimesPlayerMovedByBoard(0);
       setClickedSquares([]);
@@ -242,7 +224,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
     },
     [
       setGame,
-      setCurrentPosition,
+      setCurrentMoveIdx,
       setHowManyTimesPlayerMovedByBoard,
       setClickedSquares,
       setPlayableSquares,
