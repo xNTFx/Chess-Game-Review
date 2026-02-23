@@ -19,9 +19,18 @@ export const getEvaluateGameParams = (game: Chess): EvaluateGameParams => {
   return { fens, uciMoves };
 };
 
+export const stripPgnComments = (pgn: string): string => {
+  // chess.js v1.4+ PGN parser does not support consecutive {comments},
+  // so we strip all comment blocks before loading.
+  return pgn
+    .replace(/\{[^}]*\}/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 export const getGameFromPgn = (pgn: string): Chess => {
   const game = new Chess();
-  game.loadPgn(pgn);
+  game.loadPgn(stripPgnComments(pgn));
 
   return game;
 };

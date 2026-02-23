@@ -1,7 +1,8 @@
+import { Chess } from "chess.js";
+import { atom } from "jotai";
+
 import { EngineName } from "../types/enums";
 import { CurrentPosition, GameEval, SavedEvals } from "../types/eval";
-import { Chess, Square } from "chess.js";
-import { atom } from "jotai";
 
 // Game state atoms
 export const gameEvalAtom = atom<GameEval | undefined>(undefined);
@@ -25,8 +26,8 @@ export const currentTabAtom = atom(0);
 export const howManyTimesPlayerMovedByBoardAtom = atom(0);
 
 // Move and square tracking atoms
-export const clickedSquaresAtom = atom<Square[]>([]);
-export const playableSquaresAtom = atom<Square[]>([]);
+export const clickedSquaresAtom = atom<string[]>([]);
+export const playableSquaresAtom = atom<string[]>([]);
 
 // Saved evaluations atom
 export const savedEvalsAtom = atom<SavedEvals>({});

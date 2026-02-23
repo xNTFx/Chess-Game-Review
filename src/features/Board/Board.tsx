@@ -1,13 +1,14 @@
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import { PrimitiveAtom, atom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
   Arrow,
-  CustomSquareRenderer,
-  PromotionPieceOption,
-  Square,
-} from "react-chessboard/dist/chessboard/types";
+  PieceDropHandlerArgs,
+  PieceHandlerArgs,
+  SquareHandlerArgs,
+  SquareRenderer,
+} from "react-chessboard";
 
 import { useChessActions } from "../../hooks/useChessActions";
 import {
@@ -54,44 +55,37 @@ export default function Board({
   const setClickedSquares = useSetAtom(clickedSquaresAtom);
   const setPlayableSquares = useSetAtom(playableSquaresAtom);
   const position = useAtomValue(currentPositionAtom);
-  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [moveClickFrom, setMoveClickFrom] = useState<Square | null>(null);
-  const [moveClickTo, setMoveClickTo] = useState<Square | null>(null);
 
   const gameFen = game.fen();
 
   const isPiecePlayable = useCallback(
-    ({ piece }: { piece: string }): boolean => {
+    ({ piece }: PieceHandlerArgs): boolean => {
       if (game.isGameOver() || !canPlay) return false;
-      if (canPlay === true || canPlay === piece[0]) return true;
+      if (canPlay === true || canPlay === piece.pieceType[0]) return true;
       return false;
     },
     [canPlay, game],
   );
 
-  const onPieceDrop = (
-    source: Square,
-    target: Square,
-    piece: string,
-  ): boolean => {
-    if (!isPiecePlayable({ piece })) return false;
+  const onPieceDrop = ({
+    piece,
+    sourceSquare,
+    targetSquare,
+  }: PieceDropHandlerArgs): boolean => {
+    if (!targetSquare) return false;
+    if (!isPiecePlayable({ isSparePiece: false, piece, square: sourceSquare }))
+      return false;
 
     const result = makeGameMove(
-      {
-        from: source,
-        to: target,
-        promotion: piece[1]?.toLowerCase() ?? "q",
-      },
+      { from: sourceSquare, to: targetSquare, promotion: "q" },
       true,
     );
-
     return !!result;
   };
 
   const resetMoveClick = (square?: Square | null) => {
     setMoveClickFrom(square ?? null);
-    setMoveClickTo(null);
-    setShowPromotionDialog(false);
     if (square) {
       const moves = game.moves({ square, verbose: true });
       setPlayableSquares(moves.map((m) => m.to));
@@ -100,8 +94,10 @@ export default function Board({
     }
   };
 
-  const handleSquareLeftClick = (square: Square, piece?: string) => {
+  const handleSquareLeftClick = ({ piece, square: sq }: SquareHandlerArgs) => {
     setClickedSquares([]);
+    const square = sq as Square;
+    const pieceStr = piece?.pieceType;
 
     if (moveClickFrom === square) {
       resetMoveClick();
@@ -109,7 +105,15 @@ export default function Board({
     }
 
     if (!moveClickFrom) {
-      if (piece && !isPiecePlayable({ piece })) return;
+      if (
+        pieceStr &&
+        !isPiecePlayable({
+          isSparePiece: false,
+          piece: { pieceType: pieceStr },
+          square,
+        })
+      )
+        return;
       resetMoveClick(square);
       return;
     }
@@ -122,25 +126,17 @@ export default function Board({
       return;
     }
 
-    setMoveClickTo(square);
-
-    if (
-      move.piece === "p" &&
-      ((move.color === "w" && square[1] === "8") ||
-        (move.color === "b" && square[1] === "1"))
-    ) {
-      setShowPromotionDialog(true);
-      return;
-    }
-
     const result = makeGameMove({
       from: moveClickFrom,
       to: square,
+      promotion: "q",
     });
 
     resetMoveClick(result ? undefined : square);
   };
-  const handleSquareRightClick = (square: Square) => {
+
+  const handleSquareRightClick = ({ square: sq }: SquareHandlerArgs) => {
+    const square = sq as Square;
     setClickedSquares((prev) =>
       prev.includes(square)
         ? prev.filter((s) => s !== square)
@@ -148,44 +144,8 @@ export default function Board({
     );
   };
 
-  const handlePieceDragBegin = (_: string, square: Square) => {
-    resetMoveClick(square);
-  };
-
-  const handlePieceDragEnd = () => {
-    resetMoveClick();
-  };
-
-  const onPromotionPieceSelect = (
-    piece?: PromotionPieceOption,
-    from?: Square,
-    to?: Square,
-  ) => {
-    if (!piece) return false;
-    const promotionPiece = piece[1]?.toLowerCase() ?? "q";
-
-    if (moveClickFrom && moveClickTo) {
-      const result = makeGameMove({
-        from: moveClickFrom,
-        to: moveClickTo,
-        promotion: promotionPiece,
-      });
-      resetMoveClick();
-      return !!result;
-    }
-
-    if (from && to) {
-      const result = makeGameMove({
-        from,
-        to,
-        promotion: promotionPiece,
-      });
-      resetMoveClick();
-      return !!result;
-    }
-
-    resetMoveClick(moveClickFrom);
-    return false;
+  const handlePieceDrag = ({ square }: PieceHandlerArgs) => {
+    if (square) resetMoveClick(square as Square);
   };
 
   const customArrows: Arrow[] = useMemo(() => {
@@ -197,19 +157,19 @@ export default function Board({
       showBestMoveArrow &&
       moveClassification !== MoveClassification.Book
     ) {
-      const bestMoveArrow = [
-        bestMove.slice(0, 2),
-        bestMove.slice(2, 4),
-        moveClassificationColors[MoveClassification.Best],
-      ] as Arrow;
-
-      return [bestMoveArrow];
+      return [
+        {
+          startSquare: bestMove.slice(0, 2),
+          endSquare: bestMove.slice(2, 4),
+          color: moveClassificationColors[MoveClassification.Best],
+        },
+      ];
     }
 
     return [];
   }, [position, showBestMoveArrow]);
 
-  const SquareRenderer: CustomSquareRenderer = useMemo(() => {
+  const squareRenderer: SquareRenderer = useMemo(() => {
     return getSquareRenderer({
       currentPositionAtom,
       clickedSquaresAtom,
@@ -259,31 +219,28 @@ export default function Board({
 
         <div
           ref={boardRef}
-          className="flex h-[90vw] w-[90vw] select-none items-center justify-center sm:h-[30rem] sm:w-[30rem] md:h-[40rem] md:w-[40rem] xl:h-[40rem] xl:w-[40rem] 2xl:h-[50rem] 2xl:w-[50rem]"
+          className="flex h-[90vw] w-[90vw] items-center justify-center select-none sm:h-[30rem] sm:w-[30rem] md:h-[40rem] md:w-[40rem] xl:h-[40rem] xl:w-[40rem] 2xl:h-[50rem] 2xl:w-[50rem]"
         >
           <Chessboard
-            id={`${boardId}-${canPlay}`}
-            position={gameFen}
-            onPieceDrop={onPieceDrop}
-            boardOrientation={
-              boardOrientation === Color.White ? "white" : "black"
-            }
-            customBoardStyle={{
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
-              width: "100%",
-              height: "100%",
+            options={{
+              id: `${boardId}-${canPlay}`,
+              position: gameFen,
+              boardOrientation:
+                boardOrientation === Color.White ? "white" : "black",
+              boardStyle: {
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+                width: "100%",
+                height: "100%",
+              },
+              arrows: customArrows,
+              canDragPiece: isPiecePlayable,
+              squareRenderer,
+              onSquareClick: handleSquareLeftClick,
+              onSquareRightClick: handleSquareRightClick,
+              onPieceDrag: handlePieceDrag,
+              onPieceDrop,
+              animationDurationInMs: 200,
             }}
-            customArrows={customArrows}
-            isDraggablePiece={isPiecePlayable}
-            customSquare={SquareRenderer}
-            onSquareClick={handleSquareLeftClick}
-            onSquareRightClick={handleSquareRightClick}
-            onPieceDragBegin={handlePieceDragBegin}
-            onPieceDragEnd={handlePieceDragEnd}
-            onPromotionPieceSelect={onPromotionPieceSelect}
-            showPromotionDialog={showPromotionDialog}
-            promotionToSquare={moveClickTo}
-            animationDuration={200}
           />
         </div>
 

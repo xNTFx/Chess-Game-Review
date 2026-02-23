@@ -99,7 +99,7 @@ export default function LineEvaluation({ line }: Props) {
         )}
       </div>
 
-      <div className="max-w-[30rem] flex-grow overflow-x-auto whitespace-nowrap pb-1 text-sm">
+      <div className="max-w-[30rem] flex-grow overflow-x-auto pb-1 text-sm whitespace-nowrap">
         {showPlaceholder ? (
           <div className="h-5 w-60 animate-pulse rounded-md bg-gray-200"></div>
         ) : (
@@ -128,16 +128,16 @@ export default function LineEvaluation({ line }: Props) {
             setHoveredMoveFen(null);
             setCustomSquareStyles({});
           }}
-          className="absolute left-0 top-10 z-50 rounded border border-gray-300 bg-white p-1 shadow-lg"
+          className="absolute top-10 left-0 z-50 rounded border border-gray-300 bg-white p-1 shadow-lg"
         >
           <Chessboard
-            position={hoveredMoveFen}
-            boardWidth={200}
-            customSquareStyles={customSquareStyles}
-            arePiecesDraggable={false}
-            areArrowsAllowed={false}
-            onSquareClick={() => {}}
-            onPieceClick={() => {}}
+            options={{
+              position: hoveredMoveFen,
+              boardStyle: { width: "200px", height: "200px" },
+              squareStyles: customSquareStyles,
+              allowDragging: false,
+              allowDrawingArrows: false,
+            }}
           />
         </div>
       )}

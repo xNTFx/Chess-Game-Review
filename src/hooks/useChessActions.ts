@@ -8,6 +8,7 @@ import {
   howManyTimesPlayerMovedByBoardAtom,
   playableSquaresAtom,
 } from "../stores/states";
+import { stripPgnComments } from "../utils/chessUtils";
 import {
   playGameEndSound,
   playIllegalMoveSound,
@@ -31,7 +32,7 @@ export const useChessActions = (chessAtom: PrimitiveAtom<Chess>) => {
   const setPgn = useCallback(
     (pgn: string) => {
       const newGame = new Chess();
-      newGame.loadPgn(pgn);
+      newGame.loadPgn(stripPgnComments(pgn));
       setCurrentPosition((prev) => ({
         ...prev,
         currentMoveIdx: 0,

@@ -120,7 +120,7 @@ export default function MovesTab() {
 
   return (
     <div ref={containerRef} className="flex w-full items-center justify-center">
-      <div className="scrollbar-thin flex h-[39rem] flex-col items-start overflow-y-auto overflow-x-hidden px-2">
+      <div className="scrollbar-thin flex h-[39rem] flex-col items-start overflow-x-hidden overflow-y-auto px-2">
         {moveHistory.map((moves, index) => (
           <div
             key={`${index}`}
@@ -175,13 +175,13 @@ export default function MovesTab() {
             className="rounded border border-gray-300 bg-white p-1 shadow-lg"
           >
             <Chessboard
-              position={detailedHistory[hoveredMoveIdx].after}
-              boardWidth={200}
-              customSquareStyles={customSquareStyles}
-              arePiecesDraggable={false}
-              areArrowsAllowed={false}
-              onSquareClick={() => {}}
-              onPieceClick={() => {}}
+              options={{
+                position: detailedHistory[hoveredMoveIdx].after,
+                boardStyle: { width: "200px", height: "200px" },
+                squareStyles: customSquareStyles,
+                allowDragging: false,
+                allowDrawingArrows: false,
+              }}
             />
           </div>
         )}
