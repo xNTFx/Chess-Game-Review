@@ -89,11 +89,11 @@ const CustomTooltip = ({
 
   const imageSrc = tooltipContent.moveClassification
     ? moveClassificationIcons[tooltipContent.moveClassification]
-    : "";
+    : null;
 
   return (
     <div className="flex items-center justify-center gap-1 rounded border border-white bg-slate-700 p-1 text-white opacity-90">
-      <img src={imageSrc} className="size-6" />
+      {imageSrc && <img src={imageSrc} className="size-6" />}
       {getLineEvalLabel(tooltipContent)}
     </div>
   );
