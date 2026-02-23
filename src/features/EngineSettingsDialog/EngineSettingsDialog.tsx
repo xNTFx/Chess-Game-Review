@@ -62,7 +62,7 @@ export default function EngineSettingsDialog() {
       </button>
 
       {openDialog && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div
             ref={dialogRef}
             className="w-full max-w-3xl rounded-lg bg-slate-900 p-6"
@@ -101,8 +101,8 @@ export default function EngineSettingsDialog() {
                 max={6}
               />
 
-              <div className="flex flex-col items-center justify-evenly space-y-3 md:flex-row md:space-x-6 md:space-y-0">
-                <label className="flex items-center space-x-2">
+              <div className="flex flex-col items-center justify-evenly space-y-3 md:flex-row md:space-y-0 md:space-x-6">
+                <label className="flex cursor-pointer items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={isShowArrowBestMoveEnabled}
@@ -114,7 +114,7 @@ export default function EngineSettingsDialog() {
                   <span>Display the arrow for the engine's best move</span>
                 </label>
 
-                <label className="flex items-center space-x-2">
+                <label className="flex cursor-pointer items-center space-x-2">
                   <input
                     type="checkbox"
                     checked={isShowMoveClassificationEnabled}
