@@ -89,12 +89,13 @@ export default function ClassificationCount() {
         return (
           <div
             key={classification}
-            className={`flex flex-row items-center justify-between text-${moveClassificationColors[classification]} w-[20rem]`}
+            className="flex w-80 flex-row items-center justify-between"
+            style={{ color: moveClassificationColors[classification] }}
             title={classificationDescriptions[classification]}
           >
             <div
-              className={`flex w-12 select-none items-center justify-center cursor-${
-                whiteMovesCount ? "pointer" : "default"
+              className={`flex w-12 items-center justify-center select-none ${
+                whiteMovesCount ? "cursor-pointer" : "cursor-default"
               }`}
               onClick={() =>
                 handleMoveClick(classification, Color.White, whiteMovesCount)
@@ -115,8 +116,8 @@ export default function ClassificationCount() {
             </div>
 
             <div
-              className={`flex w-12 select-none items-center justify-center cursor-${
-                blackMovesCount ? "pointer" : "default"
+              className={`flex w-12 items-center justify-center select-none ${
+                blackMovesCount ? "cursor-pointer" : "cursor-default"
               }`}
               onClick={() =>
                 handleMoveClick(classification, Color.Black, blackMovesCount)

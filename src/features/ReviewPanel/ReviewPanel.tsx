@@ -28,7 +28,7 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
 
   return (
     <div className="lx:w-[35rem] getPieceValue h-full w-full flex-col items-center bg-slate-700 p-0 xl:p-6">
-      <div className="mb-[3.5rem] flex w-full flex-col items-center gap-2 overflow-auto rounded-t-lg border-2 shadow-lg xl:mb-0 xl:h-[52rem]">
+      <div className="mb-14 flex w-full flex-col items-center gap-2 overflow-auto rounded-t-lg border-2 shadow-lg xl:mb-0 xl:h-208">
         <PanelHeader />
         <div className="border-divider w-full border-b">
           {isGameDataLoaded ? (
@@ -94,7 +94,7 @@ export default function ReviewPanel({ isGameDataLoaded }: Props) {
           {currentTab === 1 ? <MovesTab /> : null}
         </div>
       </div>
-      <div className="fixed bottom-0 z-[100] w-screen bg-slate-900 p-1 xl:static xl:h-auto xl:w-full xl:rounded-b-lg">
+      <div className="fixed bottom-0 z-100 w-screen bg-slate-900 p-1 xl:static xl:h-auto xl:w-full xl:rounded-b-lg">
         <PanelToolBar />
       </div>
     </div>

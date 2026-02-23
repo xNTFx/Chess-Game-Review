@@ -13,7 +13,7 @@ export default function GoToLastPositionButton() {
   const gameMoves = gameState.history();
   const boardMoves = boardState.history();
 
-  const isButtonDisabled = boardMoves >= gameMoves;
+  const isButtonDisabled = boardMoves.length >= gameMoves.length;
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {

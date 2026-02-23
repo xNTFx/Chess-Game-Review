@@ -85,7 +85,7 @@ export default function LineEvaluation({ line }: Props) {
   return (
     <div className="relative flex h-[2.563rem] items-center text-center text-sm">
       <div
-        className={`mr-4 min-w-[4rem] rounded-md p-1 text-center font-bold ${
+        className={`mr-4 min-w-16 rounded-md p-1 text-center font-bold ${
           isNegativeEval ? "bg-black text-white" : "bg-white text-black"
         }`}
         style={{
@@ -99,7 +99,7 @@ export default function LineEvaluation({ line }: Props) {
         )}
       </div>
 
-      <div className="max-w-[30rem] flex-grow overflow-x-auto pb-1 text-sm whitespace-nowrap">
+      <div className="max-w-120 grow overflow-x-auto pb-1 text-sm whitespace-nowrap">
         {showPlaceholder ? (
           <div className="h-5 w-60 animate-pulse rounded-md bg-gray-200"></div>
         ) : (

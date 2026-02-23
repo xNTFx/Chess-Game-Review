@@ -149,7 +149,7 @@ export function getSquareRenderer({
           <img
             src={`/icons/${iconSrc}`}
             alt="king-icon"
-            className="absolute top-[-2vw] right-[-2vw] z-10 w-[5vw] sm:top-[-12px] sm:right-[-12px] sm:w-[30px] lg:w-[30px] xl:w-[40px]"
+            className="absolute top-[-2vw] right-[-2vw] z-10 w-[5vw] sm:-top-3 sm:-right-3 sm:w-7.5 lg:w-7.5 xl:w-10"
           />
         )}
         {moveClassification &&
@@ -158,7 +158,7 @@ export function getSquareRenderer({
             <img
               src={`/icons/${moveClassification}.png`}
               alt="move-icon"
-              className="absolute top-[-2vw] right-[-2vw] z-10 w-[5vw] sm:top-[-12px] sm:right-[-12px] sm:w-[30px] lg:w-[30px] xl:w-[40px]"
+              className="absolute top-[-2vw] right-[-2vw] z-10 w-[5vw] sm:-top-3 sm:-right-3 sm:w-7.5 lg:w-7.5 xl:w-10"
             />
           )}
       </div>

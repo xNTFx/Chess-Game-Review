@@ -73,7 +73,7 @@ export default function CapturedPieces({ gameAtom, color }: Props) {
   }, [chessGame, color]);
 
   return (
-    <div className="flex h-[1.5rem] items-end bg-slate-700">
+    <div className="flex h-6 items-end bg-slate-700">
       {pieceOrder.map((piece) => {
         let capturedCount = Math.max(
           capturedPieces[piece as keyof typeof capturedPieces] || 0,

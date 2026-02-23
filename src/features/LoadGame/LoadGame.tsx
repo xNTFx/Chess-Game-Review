@@ -70,11 +70,11 @@ export default function LoadGame({ openDialog, setOpenDialog }: Props) {
   return (
     <div>
       {openDialog && (
-        <div className="pver fixed inset-0 z-50 flex w-screen items-center justify-center bg-gray-900 bg-opacity-75">
+        <div className="fixed inset-0 z-50 flex w-screen items-center justify-center bg-gray-900/75">
           <div>
             <div
               ref={dialogRef}
-              className="sticky top-0 z-50 flex h-screen w-screen flex-col rounded-lg bg-slate-900 p-6 py-1 xl:w-[80rem]"
+              className="sticky top-0 z-50 flex h-screen w-screen flex-col rounded-lg bg-slate-900 p-6 py-1 xl:w-7xl"
             >
               <div className="sticky top-0 z-50 flex w-full justify-end bg-slate-900">
                 <button
@@ -130,7 +130,7 @@ export default function LoadGame({ openDialog, setOpenDialog }: Props) {
                 ) : null}
               </div>
 
-              <div className="grid flex-grow gap-4 overflow-y-auto">
+              <div className="grid grow gap-4 overflow-y-auto">
                 {gameOrigin === GameOrigin.Pgn && (
                   <GamePgnInput pgn={pgn} setPgn={setPgn} />
                 )}

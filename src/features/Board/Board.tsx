@@ -181,7 +181,7 @@ export default function Board({
   return (
     <div className="flex w-full items-center justify-center">
       {showEvaluationBar && (
-        <div className="h-[90vw] sm:h-[30rem] md:h-[40rem] 2xl:h-[50rem]">
+        <div className="h-[90vw] sm:h-120 md:h-160 2xl:h-200">
           <EvaluationBar
             boardOrientation={boardOrientation}
             currentPositionAtom={currentPositionAtom}
@@ -219,7 +219,7 @@ export default function Board({
 
         <div
           ref={boardRef}
-          className="flex h-[90vw] w-[90vw] items-center justify-center select-none sm:h-[30rem] sm:w-[30rem] md:h-[40rem] md:w-[40rem] xl:h-[40rem] xl:w-[40rem] 2xl:h-[50rem] 2xl:w-[50rem]"
+          className="flex h-[90vw] w-[90vw] items-center justify-center select-none sm:h-120 sm:w-120 md:h-160 md:w-160 xl:h-160 xl:w-160 2xl:h-200 2xl:w-200"
         >
           <Chessboard
             options={{

@@ -120,7 +120,7 @@ export default function MovesTab() {
 
   return (
     <div ref={containerRef} className="flex w-full items-center justify-center">
-      <div className="scrollbar-thin flex h-[39rem] flex-col items-start overflow-x-hidden overflow-y-auto px-2">
+      <div className="scrollbar-thin flex h-156 flex-col items-start overflow-x-hidden overflow-y-auto px-2">
         {moveHistory.map((moves, index) => (
           <div
             key={`${index}`}
