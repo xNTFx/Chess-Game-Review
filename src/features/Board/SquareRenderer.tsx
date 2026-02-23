@@ -1,5 +1,5 @@
 import { Chess } from "chess.js";
-import { Atom, PrimitiveAtom, atom, useAtomValue } from "jotai";
+import { Atom, PrimitiveAtom, atom, useAtomValue, useSetAtom } from "jotai";
 import { useMemo } from "react";
 import React from "react";
 import { SquareRenderer } from "react-chessboard";
@@ -70,7 +70,18 @@ export function getSquareRenderer({
     );
     const position = useAtomValue(currentPositionAtom);
     const clickedSquares = useAtomValue(clickedSquaresAtom);
+    const setClickedSquares = useSetAtom(clickedSquaresAtom);
     const playableSquares = useAtomValue(playableSquaresAtom);
+
+    const handleContextMenu = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setClickedSquares((prev) =>
+        prev.includes(square)
+          ? prev.filter((s) => s !== square)
+          : [...prev, square],
+      );
+    };
     const game = useAtomValue(boardAtom);
 
     const { whiteIcon, blackIcon } = getGameOutcomeIcons(game);
@@ -79,12 +90,6 @@ export function getSquareRenderer({
     const fromSquare = position.lastMove?.from;
     const toSquare = position.lastMove?.to;
     const moveClassification = position?.eval?.moveClassification;
-
-    const highlightClass = useMemo(() => {
-      return clickedSquares.includes(square)
-        ? "absolute inset-0 bg-red-500"
-        : "absolute inset-0";
-    }, [clickedSquares, square]);
 
     const hexToRgba = (hex: string, opacity: number) => {
       if (!hex || !/^#([0-9A-Fa-f]{3}){1,2}$/.test(hex)) {
@@ -113,7 +118,10 @@ export function getSquareRenderer({
     }, [game, square, whiteKingSquare, blackKingSquare, whiteIcon, blackIcon]);
 
     const getHighlightStyle = useMemo(() => {
-      if (iconSrc || clickedSquares.includes(square)) return {};
+      if (clickedSquares.includes(square)) {
+        return { backgroundColor: "rgba(220, 38, 38, 0.5)" };
+      }
+      if (iconSrc) return {};
       if (fromSquare === square || toSquare === square) {
         if (moveClassification && isShowMoveClassificationEnabled) {
           return {
@@ -142,7 +150,11 @@ export function getSquareRenderer({
       : "";
 
     return (
-      <div className={`relative ${highlightClass}`} style={getHighlightStyle}>
+      <div
+        className="relative h-full w-full"
+        style={getHighlightStyle}
+        onContextMenu={handleContextMenu}
+      >
         {children}
         {playableClass && <div className={playableClass} />}
         {iconSrc && (

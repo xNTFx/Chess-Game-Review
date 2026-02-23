@@ -135,15 +135,6 @@ export default function Board({
     resetMoveClick(result ? undefined : square);
   };
 
-  const handleSquareRightClick = ({ square: sq }: SquareHandlerArgs) => {
-    const square = sq as Square;
-    setClickedSquares((prev) =>
-      prev.includes(square)
-        ? prev.filter((s) => s !== square)
-        : [...prev, square],
-    );
-  };
-
   const handlePieceDrag = ({ square }: PieceHandlerArgs) => {
     if (square) resetMoveClick(square as Square);
   };
@@ -236,7 +227,6 @@ export default function Board({
               canDragPiece: isPiecePlayable,
               squareRenderer,
               onSquareClick: handleSquareLeftClick,
-              onSquareRightClick: handleSquareRightClick,
               onPieceDrag: handlePieceDrag,
               onPieceDrop,
               animationDurationInMs: 200,
