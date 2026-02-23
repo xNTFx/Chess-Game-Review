@@ -10,6 +10,7 @@ const LinearProgressBar = ({ value, label }: ProgressBarProps) => {
 
   useEffect(() => {
     if (value === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayValue(0);
       return;
     }
@@ -47,7 +48,7 @@ const LinearProgressBar = ({ value, label }: ProgressBarProps) => {
               </b>
             </span>
             <div
-              className="absolute left-0 top-0 flex h-6 items-center justify-center rounded font-semibold text-white transition-all duration-500 ease-out"
+              className="absolute top-0 left-0 flex h-6 items-center justify-center rounded font-semibold text-white transition-all duration-500 ease-out"
               style={{
                 width: `${displayValue}%`,
                 background: "linear-gradient(to right, #16a34a, #4ade80)",

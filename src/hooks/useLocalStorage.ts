@@ -11,6 +11,7 @@ export function useLocalStorage<T = string | number | boolean | undefined>(
   useEffect(() => {
     const localStorageItem = window.localStorage.getItem(storageKey);
     if (localStorageItem) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStoredItem(parseLocalStorageValue<T>(localStorageItem));
     } else {
       setStoredItem(defaultValue);
@@ -30,5 +31,5 @@ export function useLocalStorage<T = string | number | boolean | undefined>(
 }
 
 function parseLocalStorageValue<T>(item: string): T {
-  return item === "undefined" ? undefined : JSON.parse(item);
+  return (item === "undefined" ? undefined : JSON.parse(item)) as T;
 }

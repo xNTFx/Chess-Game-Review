@@ -1,3 +1,4 @@
+import { Chess } from "chess.js";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import {
@@ -9,7 +10,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CategoricalChartState } from "recharts/types/chart/types";
 
 import { useChessActions } from "../../../../hooks/useChessActions";
 import {
@@ -34,6 +34,71 @@ export interface ChartItemData {
   moveClassification?: MoveClassification;
 }
 
+type AreaChartEvent = { activeLabel?: string | number | null } | null;
+
+interface CustomDotProps {
+  cx?: number;
+  cy?: number;
+  r?: number;
+  payload?: ChartItemData;
+  goToMove: (moveNb: number, game: Chess) => void;
+  currentGame: Chess;
+}
+
+const CustomDot = ({
+  cx,
+  cy,
+  r,
+  payload,
+  goToMove,
+  currentGame,
+}: CustomDotProps) => {
+  if (!payload) return null;
+
+  const circleColor = payload.moveClassification
+    ? moveClassificationColors[payload.moveClassification]
+    : "gray";
+
+  const handleCircleClick = () => goToMove(payload.moveNb, currentGame);
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={r}
+      stroke={circleColor}
+      strokeWidth={5}
+      fill={circleColor}
+      fillOpacity={1}
+      onClick={handleCircleClick}
+      className="cursor-pointer"
+    />
+  );
+};
+
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: ChartItemData }[];
+}) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const tooltipContent = payload[0].payload;
+
+  const imageSrc = tooltipContent.moveClassification
+    ? moveClassificationIcons[tooltipContent.moveClassification]
+    : "";
+
+  return (
+    <div className="flex items-center justify-center gap-1 rounded border border-white bg-slate-700 p-1 text-white opacity-90">
+      <img src={imageSrc} className="size-6" />
+      {getLineEvalLabel(tooltipContent)}
+    </div>
+  );
+};
+
 export default function Graph() {
   const gameEvaluations = useAtomValue(gameEvalAtom);
   const currentPosition = useAtomValue(currentPositionAtom);
@@ -51,66 +116,9 @@ export default function Graph() {
 
   if (!gameEvaluations || !chartItems.length) return null;
 
-  const handleChartClick = (event: CategoricalChartState) => {
+  const handleChartClick = (event: AreaChartEvent) => {
     if (!event || !event.activeLabel) return;
     goToMove(Number(event.activeLabel), currentGame);
-  };
-
-  const CustomDot = ({
-    cx,
-    cy,
-    r,
-    payload,
-  }: {
-    cx?: number;
-    cy?: number;
-    r?: number;
-    payload?: ChartItemData;
-  }) => {
-    if (!payload) return null;
-
-    const circleColor = payload.moveClassification
-      ? moveClassificationColors[payload.moveClassification]
-      : "gray";
-
-    const handleCircleClick = () => goToMove(payload.moveNb, currentGame);
-
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={r}
-        stroke={circleColor}
-        strokeWidth={5}
-        fill={circleColor}
-        fillOpacity={1}
-        onClick={handleCircleClick}
-        className="cursor-pointer"
-      />
-    );
-  };
-
-  const CustomTooltip = ({
-    active,
-    payload,
-  }: {
-    active?: boolean;
-    payload?: { payload: ChartItemData }[];
-  }) => {
-    if (!active || !payload || !payload.length) return null;
-
-    const tooltipContent = payload[0].payload;
-
-    const imageSrc = tooltipContent.moveClassification
-      ? moveClassificationIcons[tooltipContent.moveClassification]
-      : "";
-
-    return (
-      <div className="flex items-center justify-center gap-1 rounded border border-white bg-slate-700 p-1 text-white opacity-90">
-        <img src={imageSrc} className="size-6" />
-        {getLineEvalLabel(tooltipContent)}
-      </div>
-    );
   };
 
   return (
@@ -135,7 +143,9 @@ export default function Graph() {
               dataKey="value"
               fill="#ffffff"
               fillOpacity={1}
-              activeDot={<CustomDot />}
+              activeDot={
+                <CustomDot goToMove={goToMove} currentGame={currentGame} />
+              }
               isAnimationActive={false}
               className="cursor-pointer"
             />

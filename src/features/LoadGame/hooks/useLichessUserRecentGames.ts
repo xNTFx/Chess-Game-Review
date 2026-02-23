@@ -22,10 +22,12 @@ const fetchLichessUserRecentGames = async (
   return games;
 };
 
+const INITIAL_PAGE_PARAM = Date.now();
+
 export const useLichessUserRecentGames = (username: string | null) => {
   return useInfiniteQuery({
     queryKey: ["lichessUserRecentGames", username],
-    queryFn: ({ pageParam = Date.now() }) =>
+    queryFn: ({ pageParam = INITIAL_PAGE_PARAM }) =>
       fetchLichessUserRecentGames(username, pageParam),
     enabled: !!username,
     getNextPageParam: (lastPage) => {
@@ -33,6 +35,6 @@ export const useLichessUserRecentGames = (username: string | null) => {
         ? lastPage[lastPage.length - 1].lastMoveAt
         : undefined;
     },
-    initialPageParam: Date.now(),
+    initialPageParam: INITIAL_PAGE_PARAM,
   });
 };

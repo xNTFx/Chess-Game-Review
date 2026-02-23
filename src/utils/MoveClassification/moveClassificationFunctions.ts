@@ -152,7 +152,9 @@ const canICaptureHigherOrEqualValuePieceWhenOpponentTakes = (
 ): boolean => {
   const gameCopy = new Chess(game.fen());
   const toSquare = playedMove.slice(2, 4) as Square;
-  const capturedPieceValue = getPieceValue(gameCopy.get(toSquare).type);
+  const toSquarePiece = gameCopy.get(toSquare);
+  if (!toSquarePiece) return false;
+  const capturedPieceValue = getPieceValue(toSquarePiece.type);
 
   const opponentColor = playerColor === "w" ? "b" : "w";
   const opponentMoves = gameCopy.moves({
@@ -165,10 +167,12 @@ const canICaptureHigherOrEqualValuePieceWhenOpponentTakes = (
       const capturingPiece = gameCopy.get(move.from);
       if (capturingPiece) {
         const capturingPieceValue = getPieceValue(capturingPiece.type);
+        const lowestPiece = lowestValueCapturingMove
+          ? gameCopy.get(lowestValueCapturingMove.from)
+          : undefined;
         if (
           !lowestValueCapturingMove ||
-          capturingPieceValue <
-            getPieceValue(gameCopy.get(lowestValueCapturingMove.from).type)
+          (lowestPiece && capturingPieceValue < getPieceValue(lowestPiece.type))
         ) {
           lowestValueCapturingMove = move;
         }

@@ -1,5 +1,5 @@
-import { Atom, PrimitiveAtom, atom, useAtomValue } from "jotai";
-import { useEffect, useState } from "react";
+import { Atom, atom, useAtomValue } from "jotai";
+import { useMemo } from "react";
 
 import { Color } from "../../types/enums";
 import { CurrentPosition } from "../../types/eval";
@@ -14,19 +14,15 @@ export default function EvaluationBar({
   boardOrientation,
   currentPositionAtom = atom({}),
 }: Props) {
-  const [barState, setBarState] = useState({
-    whiteBarPercentage: 50,
-    label: "0.0",
-  });
   const boardPosition = useAtomValue(currentPositionAtom);
 
-  useEffect(() => {
+  const barState = useMemo(() => {
     const topLine = boardPosition?.eval?.lines[0];
-    if (!boardPosition.eval || !topLine || topLine.depth < 6) return;
-
-    const barEval = getEvaluationBarValue(boardPosition.eval);
-    setBarState(barEval);
-  }, [boardPosition.lastMove?.before, boardPosition.eval]);
+    if (!boardPosition.eval || !topLine || topLine.depth < 6) {
+      return { whiteBarPercentage: 50, label: "0.0" };
+    }
+    return getEvaluationBarValue(boardPosition.eval);
+  }, [boardPosition.eval]);
 
   return (
     <div className="flex h-full w-[5vw] flex-col items-center justify-center rounded-md border-2 border-black sm:w-8">
