@@ -7,6 +7,7 @@ export enum GameOrigin {
 export enum EngineName {
   Stockfish16_1Lite = "stockfish_16_1_lite",
   Stockfish11 = "stockfish_11",
+  Custom = "custom_engine",
 }
 
 export enum MoveClassification {

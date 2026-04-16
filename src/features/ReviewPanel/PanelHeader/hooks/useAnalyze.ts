@@ -16,7 +16,7 @@ import { getEvaluateGameParams } from "../../../../utils/chessUtils";
 
 export default function useAnalyze() {
   const currentEngineName = useAtomValue(engineNameAtom);
-  const chessEngine = useChessEngine();
+  const chessEngine = useChessEngine(currentEngineName);
   const [evalProgress, setEvalProgress] = useAtom(evaluationProgressAtom);
   const depthSetting = useAtomValue(engineDepthAtom);
   const multiPvSetting = useAtomValue(engineMultiPvAtom);
@@ -56,7 +56,7 @@ export default function useAnalyze() {
       (acc, fen, idx) => {
         acc[fen] = {
           ...newEvaluation.positions[idx],
-          engine: currentEngineName,
+          engine: newEvaluation.settings.engine,
         };
         return acc;
       },

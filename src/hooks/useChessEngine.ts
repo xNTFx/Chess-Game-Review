@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { buildEvaluationBenchmark } from "../engine/benchmark";
+import { createCustomChessEngine } from "../engine/custom/createCustomChessEngine";
+import { ChessEngine } from "../engine/types";
 import { EngineName } from "../types/enums";
 import {
   EvaluateGameParams,
@@ -87,6 +90,7 @@ function createEngine(
 
   // Returns the readiness status of the engine
   const isReady = () => ready;
+  const getName = () => engineName;
 
   // Stops the engine's current search
   const stopSearch = async () => {
@@ -123,13 +127,15 @@ function createEngine(
     setEvaluationProgress?.(1); // Initialize progress
     await setMultiPv(multiPv);
     ready = false;
+    const startedAt = performance.now();
 
     // Reset engine state for a new game
     await sendCommands(["ucinewgame", "isready"], "readyok");
     worker.postMessage("position startpos");
 
     const positions: PositionEval[] = [];
-    for (const fen of fens) {
+    for (let index = 0; index < fens.length; index += 1) {
+      const fen = fens[index];
       const whoIsCheckmated = getWhoIsCheckmated(fen);
       if (whoIsCheckmated) {
         // Add mate information if a checkmate situation is detected
@@ -148,9 +154,9 @@ function createEngine(
       const result = await evaluatePosition(fen, depth); // Evaluate the position
       positions.push(result);
       setEvaluationProgress?.(
-        fens.indexOf(fen) === fens.length - 1
+        index === fens.length - 1
           ? 100
-          : (1 - Math.exp(-6 * (fens.indexOf(fen) / fens.length))) * 100, // Smooth non-linear progress update
+          : (1 - Math.exp(-6 * (index / fens.length))) * 100, // Smooth non-linear progress update
       );
     }
 
@@ -162,6 +168,7 @@ function createEngine(
       uciMoves,
       fens,
     );
+    const endedAt = performance.now();
     const accuracy = computeAccuracy(positions);
 
     ready = true;
@@ -174,6 +181,14 @@ function createEngine(
         depth,
         multiPv,
       },
+      benchmark: buildEvaluationBenchmark({
+        engine: engineName,
+        positions: positionsWithClassification,
+        requestedDepth: depth,
+        requestedMultiPv: multiPv,
+        startedAt,
+        endedAt,
+      }),
     };
   };
 
@@ -228,6 +243,7 @@ function createEngine(
     shutdown,
     stopSearch,
     isReady,
+    getName,
     evaluateGame,
     evaluatePositionWithUpdate,
     setSkillLevel,
@@ -235,7 +251,13 @@ function createEngine(
 }
 
 // Factory function to create a Stockfish engine with WebAssembly support checks
-const createStockfishEngine = () => {
+const createStockfishEngine = (
+  engineName: EngineName.Stockfish16_1Lite | EngineName.Stockfish11,
+) => {
+  if (engineName === EngineName.Stockfish11) {
+    return createEngine(EngineName.Stockfish11, "engines/stockfish-11.js");
+  }
+
   if (!isWasmSupported()) {
     console.info(
       "Stockfish 16.1 is not supported, because WASM is not supported",
@@ -254,31 +276,48 @@ const createStockfishEngine = () => {
   return createEngine(EngineName.Stockfish16_1Lite, enginePath);
 };
 
-type Engine = {
-  init: () => Promise<void>;
-  shutdown: () => void;
-  stopSearch: () => Promise<void>;
-  isReady: () => boolean;
-  evaluateGame: (params: EvaluateGameParams) => Promise<GameEval>;
-  evaluatePositionWithUpdate: (
-    params: EvaluatePositionWithUpdateParams,
-  ) => Promise<PositionEval>;
-  setSkillLevel: (newSkillLevel: number, initCase?: boolean) => Promise<void>;
+const createSelectedEngine = (engineName: EngineName): ChessEngine => {
+  if (engineName === EngineName.Custom) {
+    return createCustomChessEngine();
+  }
+
+  return createStockfishEngine(engineName);
 };
 
-export const useChessEngine = () => {
-  const [engine, setEngine] = useState<Engine | null>(null);
+export const useChessEngine = (
+  engineName = EngineName.Stockfish16_1Lite,
+): ChessEngine | null => {
+  const [engineState, setEngineState] = useState<{
+    selectedEngine: EngineName;
+    engine: ChessEngine;
+  } | null>(null);
 
   useEffect(() => {
-    const newEngine = createStockfishEngine();
-    newEngine.init().then(() => {
-      setEngine(newEngine);
-    });
+    const newEngine = createSelectedEngine(engineName);
+    let disposed = false;
+
+    newEngine
+      .init()
+      .then(() => {
+        if (disposed) {
+          newEngine.shutdown();
+          return;
+        }
+
+        setEngineState({
+          selectedEngine: engineName,
+          engine: newEngine,
+        });
+      })
+      .catch((error) => {
+        console.error(`Failed to initialize ${engineName}`, error);
+      });
 
     return () => {
+      disposed = true;
       newEngine.shutdown();
     };
-  }, []);
+  }, [engineName]);
 
-  return engine;
+  return engineState?.selectedEngine === engineName ? engineState.engine : null;
 };

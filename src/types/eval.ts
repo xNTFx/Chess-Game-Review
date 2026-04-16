@@ -6,6 +6,7 @@ export interface PositionEval {
   bestMove?: string;
   moveClassification?: MoveClassification;
   opening?: string;
+  benchmark?: PositionBenchmark;
   lines: LineEval[];
 }
 
@@ -22,6 +23,34 @@ export interface Accuracy {
   black: number;
 }
 
+export interface PositionBenchmark {
+  depth: number;
+  elapsedMs: number;
+  nodes: number;
+  nodesPerSecond: number;
+  legalMoves: number;
+  quiescenceNodes?: number;
+  transpositionHits?: number;
+  cutoffs?: number;
+}
+
+export interface EvaluationBenchmark {
+  engine: EngineName;
+  analyzedPositions: number;
+  requestedDepth: number;
+  effectiveDepth: number;
+  requestedMultiPv: number;
+  elapsedMs: number;
+  nodes: number;
+  nodesPerSecond: number;
+  averageMsPerPosition: number;
+  positionsPerSecond: number;
+  quiescenceNodes: number;
+  transpositionHits: number;
+  cutoffs: number;
+  classificationCounts: Record<MoveClassification, number>;
+}
+
 export interface EngineSettings {
   engine: EngineName;
   depth: number;
@@ -33,6 +62,7 @@ export interface GameEval {
   positions: PositionEval[];
   accuracy: Accuracy;
   settings: EngineSettings;
+  benchmark?: EvaluationBenchmark;
 }
 
 export interface EvaluatePositionWithUpdateParams {

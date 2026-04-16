@@ -8,6 +8,10 @@ export const parseEvaluationResults = (
     lines: [],
   };
   const tempResults: Record<string, LineEval> = {};
+  let maxDepth = 0;
+  let maxNodes = 0;
+  let maxTimeMs = 0;
+  let latestNodesPerSecond = 0;
 
   for (const result of results) {
     if (result.startsWith("bestmove")) {
@@ -22,6 +26,7 @@ export const parseEvaluationResults = (
       const multiPv = getResultProperty(result, "multipv");
       const depth = getResultProperty(result, "depth");
       if (!pv || !multiPv || !depth) continue;
+      maxDepth = Math.max(maxDepth, parseInt(depth));
 
       if (
         tempResults[multiPv] &&
@@ -40,6 +45,14 @@ export const parseEvaluationResults = (
         depth: parseInt(depth),
         multiPv: parseInt(multiPv),
       };
+
+      const nodes = getResultProperty(result, "nodes");
+      const time = getResultProperty(result, "time");
+      const nps = getResultProperty(result, "nps");
+
+      if (nodes) maxNodes = Math.max(maxNodes, parseInt(nodes));
+      if (time) maxTimeMs = Math.max(maxTimeMs, parseInt(time));
+      if (nps) latestNodesPerSecond = parseInt(nps);
     }
   }
 
@@ -51,6 +64,21 @@ export const parseEvaluationResults = (
       cp: line.cp ? -line.cp : line.cp,
       mate: line.mate ? -line.mate : line.mate,
     }));
+  }
+
+  if (maxDepth > 0 || maxNodes > 0 || maxTimeMs > 0) {
+    parsedResults.benchmark = {
+      depth: maxDepth,
+      elapsedMs: maxTimeMs,
+      nodes: maxNodes,
+      nodesPerSecond:
+        latestNodesPerSecond ||
+        (maxTimeMs > 0 ? Math.round(maxNodes / (maxTimeMs / 1000)) : 0),
+      legalMoves: parsedResults.lines.length,
+      quiescenceNodes: 0,
+      transpositionHits: 0,
+      cutoffs: 0,
+    };
   }
 
   return parsedResults;

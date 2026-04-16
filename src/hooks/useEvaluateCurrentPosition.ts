@@ -24,7 +24,6 @@ const DEFAULT_EVAL: PositionEval = {
  */
 function useFenEval(
   engine: ReturnType<typeof useChessEngine>,
-  engineName: EngineName | undefined,
   depth: number,
   multiPv: number,
 ) {
@@ -43,13 +42,13 @@ function useFenEval(
       setPartialEval?: (positionEval: PositionEval) => void,
       timeout = 30000,
     ): Promise<PositionEval> => {
-      if (!engine?.isReady() || !engineName)
-        throw new Error("Engine not ready");
+      if (!engine?.isReady()) throw new Error("Engine not ready");
 
+      const actualEngineName = engine.getName();
       const savedEval = savedEvalsRef.current[fen];
       if (
         savedEval &&
-        savedEval.engine === engineName &&
+        savedEval.engine === actualEngineName &&
         savedEval.lines[0]?.depth >= depth
       ) {
         setPartialEval?.(savedEval);
@@ -72,7 +71,7 @@ function useFenEval(
         ) {
           setSavedEvals((prev) => ({
             ...prev,
-            [fen]: { ...rawEval, engine: engineName },
+            [fen]: { ...rawEval, engine: actualEngineName },
           }));
           return rawEval;
         }
@@ -85,12 +84,12 @@ function useFenEval(
       );
       return DEFAULT_EVAL;
     },
-    [engine, engineName, depth, multiPv, setSavedEvals],
+    [engine, depth, multiPv, setSavedEvals],
   );
 }
 
 export const useEvaluateCurrentPosition = (engineName?: EngineName) => {
-  const engine = useChessEngine();
+  const engine = useChessEngine(engineName);
   const board = useAtomValue(boardAtom);
   const depth = useAtomValue(engineDepthAtom);
   const multiPv = useAtomValue(engineMultiPvAtom);
@@ -100,7 +99,7 @@ export const useEvaluateCurrentPosition = (engineName?: EngineName) => {
   const currentPosition = useAtomValue(currentPositionAtom);
 
   // Stable evaluation callback (encapsulates cache + engine interaction)
-  const evalFen = useFenEval(engine, engineName, depth, multiPv);
+  const evalFen = useFenEval(engine, depth, multiPv);
 
   const boardFen = board.fen();
 
@@ -131,7 +130,15 @@ export const useEvaluateCurrentPosition = (engineName?: EngineName) => {
         }));
       };
 
-      const rawPositionEval = await evalFen(boardFen, setPartialEval);
+      let rawPositionEval: PositionEval;
+      try {
+        rawPositionEval = await evalFen(boardFen, setPartialEval);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to evaluate current position", error);
+        }
+        return;
+      }
       if (cancelled) return;
 
       const boardHistory = board.history();
@@ -147,7 +154,15 @@ export const useEvaluateCurrentPosition = (engineName?: EngineName) => {
       const fens = params.fens.slice(board.turn() === "w" ? -3 : -4);
       const uciMoves = params.uciMoves.slice(board.turn() === "w" ? -2 : -3);
 
-      const lastRawEval = await evalFen(fens.slice(-2)[0]);
+      let lastRawEval: PositionEval;
+      try {
+        lastRawEval = await evalFen(fens.slice(-2)[0]);
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to evaluate previous position", error);
+        }
+        return;
+      }
       if (cancelled) return;
 
       const rawPositions: PositionEval[] = fens.map((_, idx) => {

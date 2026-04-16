@@ -1,15 +1,12 @@
 import { Chess } from "chess.js";
 import { useAtomValue } from "jotai";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 
 import { useChessActions } from "../../../../hooks/useChessActions";
 import { boardAtom } from "../../../../stores/states";
 import { LineEval } from "../../../../types/eval";
-import {
-  getLineEvalLabel,
-  moveLineUciToSan,
-} from "../../../../utils/chessUtils";
+import { getLineEvalLabel } from "../../../../utils/chessUtils";
 
 interface Props {
   line: LineEval;
@@ -26,7 +23,11 @@ export default function LineEvaluation({ line }: Props) {
     (line.cp !== undefined && line.cp < 0) ||
     (line.mate !== undefined && line.mate < 0);
 
-  const showPlaceholder = line.depth < 6;
+  const showPlaceholder = line.cp === undefined && line.mate === undefined;
+  const sanMoves = useMemo(
+    () => getSanMovesFromLine(fen, line.pv),
+    [fen, line.pv],
+  );
 
   const [hoveredMoveFen, setHoveredMoveFen] = useState<string | null>(null);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
@@ -115,7 +116,7 @@ export default function LineEvaluation({ line }: Props) {
                 onClick={() => handleOnClick(index)}
                 className="pr-2"
               >
-                {moveLineUciToSan(fen)(move)}
+                {sanMoves[index]}
               </button>
             ))}
           </div>
@@ -143,4 +144,22 @@ export default function LineEvaluation({ line }: Props) {
       )}
     </div>
   );
+}
+
+function getSanMovesFromLine(fen: string, moves: string[]): string[] {
+  const game = new Chess(fen);
+
+  return moves.map((move) => {
+    try {
+      const result = game.move({
+        from: move.slice(0, 2),
+        to: move.slice(2, 4),
+        promotion: move.slice(4, 5) || undefined,
+      });
+
+      return result.san;
+    } catch {
+      return move;
+    }
+  });
 }

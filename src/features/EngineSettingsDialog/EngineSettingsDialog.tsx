@@ -5,10 +5,18 @@ import { useAtomLocalStorage } from "../../hooks/useAtomLocalStorage";
 import {
   engineDepthAtom,
   engineMultiPvAtom,
+  engineNameAtom,
   isShowArrowBestMoveEnabledAtom,
   isShowMoveClassificationEnabledAtom,
 } from "../../stores/states";
+import { EngineName } from "../../types/enums";
 import Slider from "./components/Slider";
+
+const engineLabels: Record<EngineName, string> = {
+  [EngineName.Stockfish16_1Lite]: "Stockfish 16.1 Lite",
+  [EngineName.Stockfish11]: "Stockfish 11",
+  [EngineName.Custom]: "Custom engine",
+};
 
 export default function EngineSettingsDialog() {
   const [openDialog, setOpenDialog] = useState(false);
@@ -20,6 +28,10 @@ export default function EngineSettingsDialog() {
   const [multiPv, setMultiPv] = useAtomLocalStorage(
     "engine-multi-pv",
     engineMultiPvAtom,
+  );
+  const [engineName, setEngineName] = useAtomLocalStorage(
+    "engine-name",
+    engineNameAtom,
   );
   const [isShowArrowBestMoveEnabled, setIsShowArrowBestMoveEnabled] =
     useAtomLocalStorage(
@@ -80,6 +92,23 @@ export default function EngineSettingsDialog() {
             </h2>
 
             <div className="grid grid-cols-1 gap-10">
+              <label className="flex flex-col gap-2 text-sm">
+                <span className="font-bold">Analysis engine</span>
+                <select
+                  value={engineName}
+                  onChange={(event) =>
+                    setEngineName(event.target.value as EngineName)
+                  }
+                  className="rounded bg-slate-800 p-2 text-white"
+                >
+                  {Object.values(EngineName).map((engine) => (
+                    <option key={engine} value={engine}>
+                      {engineLabels[engine]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <Slider
                 label="Maximum depth"
                 value={depth}
