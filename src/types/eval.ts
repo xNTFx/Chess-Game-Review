@@ -91,6 +91,7 @@ export interface SavedEval {
   bestMove?: string;
   lines: LineEval[];
   engine: EngineName;
+  engineVersion?: string;
 }
 
 export type SavedEvals = Record<string, SavedEval | undefined>;

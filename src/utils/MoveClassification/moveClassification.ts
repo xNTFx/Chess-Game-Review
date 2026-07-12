@@ -232,11 +232,31 @@ const isBrilliantMove = (
 ): boolean => {
   const game = new Chess(fen);
   const fromSquare = playedMove.slice(0, 2) as Square;
+  const toSquare = playedMove.slice(2, 4) as Square;
   const movedPiece = game.get(fromSquare);
+  const bestLine = lines[0];
 
   if (game.isCheck()) return false; // If the previous move was a check, the current move cannot be brilliant
 
   if (!movedPiece) return false;
+  const isPieceSacrifice = getIsPieceSacrifice(fen, playedMove);
+  if (!isPieceSacrifice) return false;
+
+  const moveResult = game.move({
+    from: fromSquare,
+    to: toSquare,
+    promotion: playedMove.slice(4, 5) || undefined,
+  });
+  const givesCheck = Boolean(moveResult?.san.includes("+"));
+  const bestLineStartsWithMove = bestLine?.pv[0] === playedMove;
+  const bestLineWinsByMate =
+    bestLine?.mate !== undefined &&
+    ((isWhiteMove && bestLine.mate > 0) ||
+      (!isWhiteMove && bestLine.mate < 0));
+
+  if (bestLineStartsWithMove && (bestLineWinsByMate || givesCheck)) {
+    return true;
+  }
 
   const winPercentageDiff =
     (positionWinPercentage - lastPositionWinPercentage) *
@@ -263,9 +283,6 @@ const isBrilliantMove = (
   ) {
     return false;
   }
-
-  const isPieceSacrifice = getIsPieceSacrifice(fen, playedMove);
-  if (!isPieceSacrifice) return false;
 
   return true;
 };

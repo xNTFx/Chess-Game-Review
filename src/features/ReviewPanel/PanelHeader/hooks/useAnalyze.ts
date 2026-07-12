@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
+import { getEngineCacheVersion } from "../../../../engine/engineVersion";
 import { useChessEngine } from "../../../../hooks/useChessEngine";
 import {
   engineDepthAtom,
@@ -54,9 +55,14 @@ export default function useAnalyze() {
 
     const savedEvaluations: SavedEvals = evaluateParams.fens.reduce(
       (acc, fen, idx) => {
+        const engineVersion = getEngineCacheVersion(
+          newEvaluation.settings.engine,
+        );
+
         acc[fen] = {
           ...newEvaluation.positions[idx],
           engine: newEvaluation.settings.engine,
+          engineVersion,
         };
         return acc;
       },

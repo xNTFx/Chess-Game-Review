@@ -1,0 +1,1521 @@
+POLITECHNIKA KRAKOWSKA im. T. Kościuszki
+     Wydział Inżynierii Elektrycznej i Komputerowej
+       Katedra Automatyki i Informatyki E1
+
+
+
+
+Kierunek studiów: Informatyka w inżynierii komputerowej
+
+
+                     Specjalność: Brak
+
+
+
+
+            STUDIA STACJONARNE
+
+
+
+
+  PRACA DYPLOMOWA
+                   INŻYNIERSKA
+
+
+
+
+                   Paweł Soboń
+
+
+
+  SYSTEM DO NAUKI JĘZYKÓW OBCYCH
+FOREIGN LANGUAGE LEARNING SYSTEM
+
+
+                                                      Opiekun pracy:
+                                                   dr inż. Paweł Król
+
+
+
+
+                    Kraków, 2025
+
+
+                          1
+Spis treści
+
+
+
+1. Wstęp ............................................................................................................................. 7
+   1.1. Wprowadzenie ........................................................................................................ 7
+   1.2. Cele i założenie ...................................................................................................... 7
+   1.3. Przegląd zawartości pracy ...................................................................................... 8
+   1.4. Problemy związane z nauką języków obcych ........................................................ 8
+   1.5. Analiza istniejących rozwiązań .............................................................................. 9
+       1.5.1. Omówienie istniejących systemów do nauki języków .................................... 9
+       1.5.2. Dostępne algorytmy do nauki słówek ........................................................... 13
+       1.5.3. Luki w istniejących rozwiązaniach ............................................................... 14
+       1.5.4. Propozycje rozwiązań luk i propozycje ich wypełnienia .............................. 15
+       1.5.5. Podsumowanie .............................................................................................. 15
+2. Algorytm SuperMemo 2.............................................................................................. 16
+   2.1. Wprowadzenie ...................................................................................................... 16
+   2.2. Zasady działania ................................................................................................... 16
+   2.3. Zalety i ograniczenia ............................................................................................ 20
+       2.3.1. Zalety ............................................................................................................. 20
+       2.3.2. Ograniczenia.................................................................................................. 20
+3. Projekt ......................................................................................................................... 22
+   3.1. Założenia projektowe ........................................................................................... 22
+       3.1.1. Wymagania funkcjonalne .............................................................................. 22
+       3.1.2. Wymaganie niefunkcjonalne ......................................................................... 23
+   3.2. Użyte technologie ................................................................................................. 23
+   3.3. Idea działania programu ....................................................................................... 26
+4. Implementacja i wdrożenie systemu ........................................................................... 27
+   4.1. Baza danych ......................................................................................................... 27
+       4.1.1. Struktura tabel bazy danych .......................................................................... 27
+       4.1.2. Indeksy bazy danych ..................................................................................... 29
+   4.2. Implementacja zmodyfikowanego algorytmu SM-2 ............................................ 30
+       4.2.1. Zmiana pierwsza - Modyfikacja systemu oceniania ..................................... 31
+       4.2.2. Zmiana druga – Modyfikacja resetu powtórek w algorytmie ....................... 31
+       4.2.3. Podsumowanie zmian .................................................................................... 31
+   4.3. Struktura plików ................................................................................................... 32
+   4.4. Strona główna ....................................................................................................... 34
+   4.5. Strona dodawania karty ze słownictwem ............................................................. 36
+
+                                                                   2
+   4.6. Strona do przeglądania kart w taliach .................................................................. 38
+   4.7. Strona do nauki słownictwa ................................................................................. 39
+   4.8. Strona ze statystykami ......................................................................................... 41
+      4.8.1. Graf z historią powtórek ............................................................................... 41
+      4.8.2. Mapa cieplna aktywności w postaci kalendarza ........................................... 42
+5. Uruchomienie aplikacji i testy .................................................................................... 44
+   5.1. Testy jednostkowe ............................................................................................... 44
+      5.1.1. Testowanie endpointów ................................................................................ 44
+      5.1.2. Testowanie funkcji zarządzania plikami ....................................................... 47
+      5.1.3. Wnioski testów jednostkowych .................................................................... 49
+   5.2. Uruchomienie aplikacji w Dockerze .................................................................... 49
+   5.3. Testy Empiryczne ................................................................................................ 51
+6. Wnioski i uwagi końcowe........................................................................................... 52
+   6.1. Efekty i osiągnięcia pracy .................................................................................... 52
+   6.2. Interpretacja wyników i ich ocena ....................................................................... 52
+   6.3. Możliwości kontynuacji i rozszerzenia tematu .................................................... 52
+   6.4. Wnioski ................................................................................................................ 52
+
+
+
+
+                                                                3
+Streszczenie pracy dyplomowej w języku polskim
+    Praca inżynierska skupia się na opracowaniu wieloplatformowego systemu do nauki
+języków obcych. Ma on za zadanie wspomagać w procesie nauki poprzez
+wykorzystywanie fiszek oraz funkcjonalności tłumaczenia słownictwa. We
+wprowadzeniu przedstawiono cele i założenia systemu, problemy związane z nauką
+języków obcych, takie jak krzywa zapominania czy brak motywacji, oraz
+przeprowadzono przegląd istniejących rozwiązań, takich jak Duolingo, Memrise, Anki i
+Quizlet, wskazując ich ograniczenia oraz propozycje usprawnień. System używa
+zmodyfikowanego algorytmu SuperMemo 2, który określa, kiedy dane słówko ma zostać
+powtórzone. Używa technologii takich jak React, Electron, SQLite, aplikacja również
+pozwala na korzystanie w trybie offline, personalizację treści oraz wgląd do statystyk.
+Praca obejmuje etapy projektowania, implementacji oraz testowania systemu.
+
+Abstract of the thesis in English
+    The engineering work focuses on the development of a multi-platform language
+learning system. Its goal is to support the learning process using flashcards and
+vocabulary translation functionality. The introduction presents the goals and objectives
+of the system, language learning problems such as the forgetting curve and lack of
+motivation, and reviews existing solutions such as Duolingo, Memrise, Anki and Quizlet,
+pointing out their limitations and suggestions for improvement. The system uses a
+modified SuperMemo 2 algorithm that determines when a word should be reviewed. The
+project uses technologies such as React, Electron and SQLite. The application also allows
+offline use, personalization of content and generation of statistics. The work includes the
+design, implementation and testing stages of the system.
+
+
+
+
+                                            4
+Spis skrótów i oznaczeń
+   •   Frontend - część aplikacji widoczna dla użytkownika, z którą bezpośrednio
+       wchodzi w interakcję.
+   •   Backend - warstwa aplikacji odpowiedzialna za logikę biznesową, przetwarzanie
+       danych i operacje w tle.
+   •   Framework - zestaw narzędzi, bibliotek i zasad, dzięki którym tworzenie aplikacji
+       w danym języku programowania jest łatwiejsze.
+   •   Responsywność - zdolność strony internetowej               do   automatycznego
+       dostosowywania się do różnych rozmiarów ekranów.
+   •   XML (ang. Extensible Markup Language) - uniwersalny język znaczników
+       zaprojektowany do przechowywania i transportu danych w ustrukturyzowanej
+       formie. Umożliwia definiowanie niestandardowych tagów i struktur, co pozwala
+       na łatwą wymianę danych między różnymi systemami.
+   •   HTML (ang. HyperText Markup Language) - język znaczników służący do
+       strukturyzacji i prezentacji treści na stronach internetowych. Definiuje elementy
+       takie jak nagłówki, akapity, obrazy i linki, które są interpretowane przez
+       przeglądarki internetowe.
+   •   CSS (ang. Cascading Style Sheets) - język stylizacji, który pozwala na
+       formatowanie wyglądu tych elementów, np. ich kolorów, rozmiarów czy układu
+       na stronie.
+   •   DOM (ang. Document Object Model) - hierarchiczna reprezentacja dokumentu
+       HTML lub XML w postaci obiektów i węzłów, umożliwiająca dynamiczne
+       manipulowanie treścią, strukturą oraz stylem strony internetowej.
+   •   Stylowanie - proces definiowania właściwości elementów HTML na stronie
+       internetowej za pomocą CSS, obejmujący zmiany wyglądu oraz zachowanie
+       elementów HTML.
+   •   Renderowanie - proces, w którym komponenty React przekształcają dane
+       wejściowe na elementy wirtualnego DOM, a następnie synchronizują je z
+       rzeczywistym DOM.
+   •   Providery – w React to komponenty udostępniające dane lub funkcjonalności (np.
+       globalny stan) dla innych komponentów w aplikacji.
+   •   Routing – w React to mechanizm umożliwiający nawigację między różnymi
+       widokami lub stronami aplikacji poprzez dynamiczne zmienianie adresu URL.
+   •   Endpoint - punkt dostępu w aplikacji, który umożliwia komunikację między
+       klientem a serwerem, zazwyczaj reprezentowany przez konkretny URL
+       obsługujący określoną funkcjonalność.
+
+
+
+
+                                           5
+List of Abbreviations and Terms
+   •   Frontend - the part of the application visible to the user, with which they directly
+       interact.
+   •   Backend - the layer of the application responsible for business logic, data
+       processing, and background operations.
+   •   Framework - a set of tools, libraries, and rules that make creating applications in
+       each programming language easier.
+   •   Responsiveness - the ability of a website to automatically adapt to different screen
+       sizes.
+   •   XML (Extensible Markup Language) - a universal markup language designed for
+       storing and transporting data in a structured form. It allows the definition of
+       custom tags and structures, facilitating data exchange between different systems.
+   •   HTML (HyperText Markup Language) - a markup language used for structuring
+       and presenting content on websites. It defines elements such as headers,
+       paragraphs, images, and links, which are interpreted by web browsers.
+   •   CSS (Cascading Style Sheets) - a styling language that allows formatting the
+       appearance of these elements, e.g., their colors, sizes, or layout on a page.
+   •   DOM (Document Object Model) - a hierarchical representation of an HTML or
+       XML document in the form of objects and nodes, enabling dynamic manipulation
+       of content, structure, and styles of a web page.
+   •   Styling - the process of defining the properties of HTML elements on a webpage
+       using CSS, including changes to appearance and behavior of HTML elements.
+   •   Rendering - the process by which React components transform input data into
+       elements of the virtual DOM, which are then synchronized with the real DOM.
+   •   Providers – in React, these are components that provide data or functionalities
+       (e.g., global state) to other components within the application.
+   •   Routing – in React, this is a mechanism that enables navigation between different
+       views or pages of the application by dynamically changing the URL.
+   •   Endpoint - an access point in an application that enables communication between
+       a client and a server, typically represented by a specific URL handling a defined
+       functionality.
+
+
+
+
+                                            6
+1. Wstęp
+
+1.1. Wprowadzenie
+   System do nauki języków obcych to aplikacja edukacyjna, która została stworzona z
+myślą o pomocy użytkownikowi w nauce języków obcych przy użyciu fiszek i tłumaczeń
+słownictwa. Wykorzystuje zmodyfikowany algorytm powtórek interwałowych
+SuperMemo 2, który dostosowuje częstotliwość powtórek do indywidualnych potrzeb
+użytkownika. System używa technologii takich jak React, Electron i SQLite, dzięki
+czemu aplikacja działa płynnie na różnych platformach, takich jak Windows, Linux i
+macOS.
+
+
+1.2. Cele i założenie
+    Celem pracy jest skonstruowanie systemu umożliwiającego naukę języków obcych,
+który zaoferuje użytkownikowi funkcjonalności w zakresie przyswajania słownictwa
+oraz realizowania powtórek zaprojektowanych w sposób dynamicznie dopasowany do
+indywidualnego poziomu trudności. Realizacja tego celu wymaga implementacji
+interaktywnego interfejsu użytkownika, bazującego na bibliotece React, cechującej się
+zdolnością do dynamicznego renderowania komponentów oraz zarządzania stanem
+aplikacji.
+    Na poziomie backendowym zostanie zastosowane środowisko Electron, oferujące
+możliwość tworzenia wieloplatformowych aplikacji desktopowych, jednocześnie
+pozwalając na integrację z Node.js. Ta integracja otwiera drogę do wykorzystania
+zaawansowanych funkcjonalności, takich jak dostęp do systemu plików (Node File
+System). Dane użytkownika, obejmujące między innymi słownictwo, talie czy postępy w
+nauce, które są zapisane w lekkiej bazie danych SQLite. Jej struktura umożliwia lokalne
+przechowywanie danych przy minimalnym wykorzystaniu zasobów dyskowych, co w
+konsekwencji zapewnia mobilność tych danych, łatwość ich transferu pomiędzy
+urządzeniami oraz możliwość modyfikacji kodu bazy w sposób dostępny dla
+użytkownika.
+    Kluczowym aspektem projektowanego rozwiązania jest funkcjonowanie systemu w
+trybie offline, co eliminuje konieczność utrzymywania stałego połączenia z Internetem.
+Aplikacja ma dostarczać narzędzia pozwalające na efektywną naukę w warunkach
+ograniczonego dostępu do sieci, umożliwiając tym samym korzystanie z fiszek i
+tłumaczeń w dowolnym momencie. Taki model działania przekłada się na zwiększoną
+elastyczność użytkowania, odpowiadając na potrzeby użytkowników, niezależnie od
+miejsca i okoliczności, w których się znajdują.
+
+
+
+                                          7
+1.3. Przegląd zawartości pracy
+    W rozdziale pierwszym, oprócz przedstawienia celów, założeń i wprowadzenia,
+poruszone zostaną problemy związane z nauką języków obcych. Omówione zostaną
+również wyzwania związane z nauką, takie jak motywacja.
+    Rozdział drugi będzie się skupiał na opisie oraz zasadach działania algorytmu
+SuperMemo 2. Zostanie przedstawiony wstęp do algorytmu, mechanizm oceny oraz
+obliczanie odstępów między powtórkami. Na końcu zostaną przedstawione zalety i
+ograniczenia algorytmu.
+    Trzeci rozdział będzie opisywać założenia projektowe systemu oraz użyte
+technologie. Przedstawiona zostanie również idea działania programu.
+    Rozdział czwarty będzie skupiał się na implementacji i wdrożeniu systemu.
+Omówione zostaną kluczowe elementy bazy danych, modyfikacja algorytmu
+SuperMemo 2 oraz szczegółowy opis funkcjonalności poszczególnych stron.
+    Rozdział piąty będzie skupiał się na testowaniu systemu.
+    Na końcu pracy znajdą się wnioski i uwagi końcowe, które podsumują zrealizowane
+cele, a także przedstawią sugestie dotyczące dalszego rozwoju i potencjalnych ulepszeń
+systemu.
+
+
+1.4. Problemy związane z nauką języków obcych
+    Przy nauce języków obcych, rzeczą oczywistą może być, że im szybciej możliwe jest
+przyswojenie nowego słownictwa, tym lepiej. Jednak rzeczywistość nie jest tak prosta.
+Przykładowo osoba ucząca się może początkowo zapamiętać dużą liczbę słówek, jednak
+z czasem pewna część tej wiedzy zostaje zapomniana. Jest to naturalna kolej rzeczy, to
+zjawisko jest również znane jako krzywa zapomnienia, które wymaga, aby uczący
+systematycznie się uczył, żeby przyswoić wiedzę [1]. Problemem jest to, że bez
+odpowiednich narzędzi ciężko jest ustalić, kiedy najefektywniej należy powtarzać, co
+może prowadzić do frustracji i utraty motywacji.
+    Nauka języków obcych wymaga dostosowania metody do indywidualnych potrzeb
+użytkownika. Każda osoba inaczej radzi sobie z nauką mając inne tempo nauki,
+preferencje przyswajania wiedzy oraz różne poziomy zaawansowania w danym języku.
+Z tego powodu systemy do nauki języków obcych muszą dostarczać spersonalizowane
+treści dla każdej pojedynczej osoby, jednak jest to trudne do osiągnięcia zwłaszcza, kiedy
+system posiada dużą liczbę użytkowników. Na przykład algorytm SuperMemo 2
+optymalizuje powtórki na podstawie statystycznego modelu zapominania [2], co w
+większości przypadków działa dobrze, jednak nie zawsze uwzględnia wyjątkowe
+potrzeby poszczególnych osób.
+    Dużym problemem jest motywacja. Nauka języka to proces, do którego potrzeba
+dużej ilości pracy, wytrwałości oraz regularności. System nie potrafiący zachęcić
+użytkownika na przykład poprzez dynamiczne treści może zniechęcić do dalszego
+
+                                            8
+korzystania. Również monotoniczność i źle dobrane materiały dydaktyczne sprawiają, że
+nauka jest nudna i niezbyt efektywna.
+
+
+1.5. Analiza istniejących rozwiązań
+Nauka języków obcych stanowi wyzwanie zarówno dla uczniów, jak i nauczycieli,
+wymagając narzędzi wspomagających proces uczenia. Analiza istniejących rozwiązań,
+takich jak Duolingo, Memrise, Anki czy Quizlet, pozwala zrozumieć, w jaki sposób
+różnorodne podejścia i algorytmy wpływają na efektywność nauki. Celem tej części jest
+analiza istniejących rozwiązań pod względem ich funkcjonalności oraz metod nauczania.
+
+
+1.5.1. Omówienie istniejących systemów do nauki języków
+       •   Duolingo [3]
+           Duolingo wykorzystuje mechanizmy znane z gier, aby zwiększyć
+           zaangażowanie i motywację do codziennej nauki, używając systemu nagród,
+           punktów i lig. Posiada duży wybór ćwiczeń, takie jak tłumaczenie słownictwa,
+           słuchanie oraz uzupełnianie luk w zdaniach. Aplikacja jest darmowa, jednak
+           takie funkcje jak brak reklam, używanie offline czy ulepszone statystyki są
+           płatne. Ograniczeniem jest to, że możliwe jest używanie tylko
+           przygotowanych kursów przez Duolingo, bez możliwości pełnej
+           personalizacji.
+           Na zdjęciu 1.1. przedstawiony jest interfejs aplikacji Duolingo.
+
+
+
+
+                                          9
+                Zdjęcie 1.1. Interfejs aplikacji Duolingo
+
+•   Memrise [4]
+    Memrise łączy naukę słówek z materiałami multimedialnymi, takimi jak
+    wideo i nagrania audio. Aplikacja pozwala również na tworzenie własnych
+    kursów poprzez Memrise Community. Kursy wykorzystują powtórki
+    rozłożone w czasie w celu utrwalenia słownictwa. Darmowa wersja pozwala
+    na ograniczony dostęp do kursów i funkcji. Płatna subskrypcja pozwala na
+    używanie opcji rozpoznawania mowy, lepszych statystyk i trybu offline.
+    Na zdjęciu 1.2. przedstawiony jest interfejs aplikacji Memrise.
+
+
+
+
+                                   10
+                   Zdjęcie 1.2. Interfejs aplikacji Memrise
+
+•   Anki [5]
+    Anki wykorzystuje algorytm powtórek oparty na SuperMemo 2, co pozwala
+    na dynamiczne dostosowanie harmonogramu powtórek na podstawie
+    odpowiedzi użytkownika. Posiada możliwość pełnej personalizacji talii,
+    dodając własne treści oraz multimedia. Anki w wersji na komputery jest
+    całkowicie darmowa.
+    Na zdjęciu 1.3. przedstawiony jest interfejs aplikacji Anki.
+
+
+
+
+                                 11
+                      Zdjęcie 1.3. Interfejs aplikacji Anki
+
+•   Quizlet [6]
+    Quizlet oferuje naukę za pomocą fiszek i gier edukacyjnych. Dzięki
+    przyjaznemu interfejsowi aplikacja jest często wybierana przez uczniów i
+    nauczycieli. Aplikacja jest darmowa, jednak płatna wersja umożliwia między
+    innymi korzystanie offline, dodawanie obrazów i dźwięków czy dostęp do
+    lepszych statystyk.
+    Na zdjęciu 1.4. przedstawiony jest interfejs aplikacji Quizlet.
+
+
+
+
+                                   12
+                      Zdjęcie 1.4. Interfejs aplikacji Quizlet
+
+
+1.5.2. Dostępne algorytmy do nauki słówek
+     •   SuperMemo
+         SuperMemo dynamicznie dostosowuje harmonogram powtórek na podstawie
+         odpowiedzi użytkownika. W pierwszych wersjach algorytmu odstęp między
+         powtórkami opierał się na prostym modelu wykładniczego zwiększania się
+         odstępów [7].
+
+     •   Leitner System
+         Prostota Leitner System polega na grupowaniu fiszek w zależności od stopnia
+         ich opanowania. Trudniejsze fiszki są powtarzane częściej, a łatwiejsze
+         rzadziej. System ten o ile łatwy w zrozumieniu i implementacji, przeważnie
+         jest mniej precyzyjny niż SuperMemo [8]. Na zdjęciu 1.5. jest przedstawiona
+         alternatywna metoda systemu Leitnera, w której nieprawidłowe odpowiedzi
+         są cofane tylko o jedno pole.
+
+
+
+
+                                        13
+    Zdjęcie 1.5. Alternatywna metoda systemu Leitnera, w której nieprawidłowe
+                    odpowiedzi są cofane tylko o jedno pole. [8]
+
+     •   Adaptacyjne algorytmy
+         Adaptacyjne algorytmu, takie jak na przykład używane w Duolingo,
+         dynamicznie dostosowują trudność i kolejność zadań na podstawie wyników
+         użytkownika. Duolingo wykorzystuje model Half-Life Regression (HLR),
+         który przewiduje, kiedy użytkownik może zapomnieć daną informację, i
+         planuje powtórki w odpowiednich momentach [9].
+
+
+1.5.3. Luki w istniejących rozwiązaniach
+     •   Brak pełnej personalizacji
+         Wiele istniejących aplikacji umożliwia jedynie korzystanie z wcześniej
+         przygotowanych kursów, co może stanowić problem dla użytkowników,
+         którzy chcą uczyć się wybranego przez siebie słownictwa.
+
+     •   Ograniczone wsparcie dla statystyk
+         Niektóre aplikacje nie pozwalają na wgląd w statystyki lub dostęp do nich jest
+         ograniczony do użytkowników z płatną subskrypcją.
+
+     •   Ograniczenie funkcjonalności offline
+         Wiele aplikacji wymaga stałego połączenia z internetem, a możliwość
+         korzystania z trybu offline dostępna jest jedynie w wersjach płatnych. Nawet
+         jeśli aplikacja wspiera tryb offline, nie wszystkie funkcje są w pełni dostępne.
+
+     •   Brak kontekstu nauki
+
+
+
+                                         14
+           Niektóre systemy traktują słówka lub karty jako osobne elementy, pomijając
+           powiązania między nimi. Brakuje kontekstowych przykładów, takich jak całe
+           zdania czy multimedia, które ułatwiałyby zapamiętywanie i zrozumienie
+           słownictwa.
+
+
+1.5.4. Propozycje rozwiązań luk i propozycje ich wypełnienia
+       •   Brak pełnej personalizacji
+           Rozwiązanie: Wprowadzenie możliwości do pełnego dostosowania
+           materiałów do nauki przez użytkownika. System pozwalałby na tworzenie
+           oraz edytowanie własnych talii ze słownictwem wraz z możliwością dodania
+           zdjęć oraz plików dźwiękowych.
+
+       •   Ograniczone wsparcie dla statystyk
+           Rozwiązanie: Implementacja darmowych statystyk nauki w interfejsie
+           aplikacji. Wizualizacje, takie jak mapy cieplne aktywności lub wykresy
+           postępu, umożliwiłyby użytkownikom monitorowanie ich efektywności.
+
+       •   Ograniczenie funkcjonalności offline
+           Rozwiązanie: Zapewnienie pełnej funkcjonalności systemu w trybie offline.
+           Użytkownik mógłby za darmo korzystać ze wszystkich funkcji systemu bez
+           dostępu do internetu.
+
+       •   Brak kontekstu nauki
+           Rozwiązanie: Dodanie dodatkowych pól do kart ze słownictwem,
+           umożliwiających dodanie przykładowych zdań, wyjaśnień gramatycznych czy
+           etymologii. Dodanie multimediów, takich jak nagrania dźwiękowe z
+           poprawną wymową słownictwa, pozwoliłoby użytkownikowi lepiej
+           zrozumieć i zapamiętać materiał.
+
+
+1.5.5. Podsumowanie
+    Analiza dostępnych systemów do nauki języków obcych pokazuje ich mocne strony,
+takie jak na przykład zastosowane algorytmy czy atrakcyjność wizualna. Jednak
+wskazuje również na ograniczenia, takie jak brak pełnej personalizacji treści,
+ograniczenia w trybie offline czy ograniczenie niektórych funkcjonalności w darmowych
+wersjach. Wnioski z tej analizy stanowią podstawę do wprowadzenia ulepszeń, które
+będą miały na celu stworzenie systemu oferującego bardziej zaawansowane i elastyczne
+narzędzia do nauki języków obcych.
+
+
+
+                                         15
+2. Algorytm SuperMemo 2
+
+2.1. Wprowadzenie
+    SuperMemo 2 to algorytm opracowany w 1987 roku przez Piotra Woźniaka [7]. Jest
+to druga wersja oryginalnego algorytmu SuperMemo, który powstał na podstawie badań
+nad pamięcią i procesem zapominania [7] [10].
+    Podstawowym założeniem algorytmu jest wykorzystanie tzw. Krzywej zapominania
+Ebbinghausa [11], która pokazuje, że tempo zapominania jest najszybsze zaraz po
+nauczeniu się czegoś, a następnie spowalnia z czasem.
+    Algorytm wprowadza koncepcje współczynnika trudności zapamiętywania (E-
+Factor), jest on dynamicznie modyfikowany w zależności od odpowiedzi użytkownika
+[7]. Pozwala to na dostosowaniu harmonogramu powtórek dla konkretnego elementu.
+
+
+2.2. Zasady działania
+   Zasady działania algorytmu SuperMemo 2 [7]:
+   1. Wiedza powinna być podzielona na najmniejsze możliwe części, aby ułatwić jej
+      przyswajanie.
+   2. Każdemu elementowi należy przypisać początkowy współczynnik trudności
+      zapamiętywania (E-Factor) równy 2,5.
+   3. Proces powtórek powinien odbywać się zgodnie z ustalonymi odstępami
+      czasowymi, określonymi według wzoru:
+
+                                       𝐼(1) = 1
+                                       𝐼(2) = 6
+                           𝐼(𝑛) = 𝐼(𝑛 − 1) ⋅ 𝐸𝐹 dla 𝑛 > 2                     (2.1)
+      gdzie:
+      I(n) - odstęp czasowy między n-tą a (n-1)-szą powtórką (w dniach),
+      EF - współczynnik trudności zapamiętywania danego elementu.
+      W przypadku, gdy wynik jest liczbą ułamkową, należy go zaokrąglić w górę do
+      najbliższej liczby całkowitej.
+   4. Po każdej powtórce należy dokonać oceny jakości odpowiedzi w skali od 0 do 5,
+      stosując poniższe kryteria:
+      •   5 - doskonała odpowiedź
+      •   4 - poprawna odpowiedź po wahaniu
+      •   3 - poprawna odpowiedź przywołana z poważną trudnością
+      •   2 - nieprawidłowa odpowiedź, podczas gdy prawidłowa wydawała się łatwa
+          do przypomnienia
+
+                                        16
+   •   1 - nieprawidłowa odpowiedź, prawidłowa zapamiętana
+   • 0 - całkowity brak wiedzy.
+5. Na podstawie uzyskanej oceny należy zmodyfikować współczynnik trudności
+   zapamiętywania E-Factor zgodnie ze wzorem:
+
+          𝐸𝐹 ′ = 𝐸𝐹 + (0,1 − (5 − 𝑞) ⋅ (0,08 + (5 − 𝑞) ⋅ 0,02))            (2.2)
+
+   gdzie:
+   EF' – nowa wartość współczynnika E-Factor,
+   EF – poprzednia wartość współczynnika E-Factor,
+   q – ocena jakości odpowiedzi w skali 0–5.
+   Jeżeli obliczona wartość EF' jest mniejsza niż 1,3, należy przyjąć wartość EF
+   równą 1,3.
+6. W przypadku uzyskania oceny niższej niż 3, powtórki dla danego elementu
+   powinny rozpocząć się od początku, z zachowaniem początkowych odstępów
+   czasowych (I(1), I(2) itd.), przy czym współczynnik E-Factor pozostaje bez
+   zmian.
+7. Po zakończeniu sesji powtórek danego dnia, wszystkie elementy ocenione na
+   mniej niż 4 powinny zostać ponownie przećwiczone, aż do uzyskania oceny co
+   najmniej 4.
+
+
+
+
+                                     17
+Na Zdjęciach 2.1, 2.2, 2.3 znajduje się graficzna reprezentacja działania algorytmu
+
+
+
+
+     Zdjęcie 2.1. Algorytm SuperMemo 2 - Rozpoczęcie procesu i plan powtórek
+
+
+
+
+                                           18
+Zdjęcie 2.2. Algorytm SuperMemo 2 - Ocena odpowiedzi i aktualizacja EF
+
+
+
+
+                                 19
+      Zdjęcie 2.3. Algorytm SuperMemo 2 - Dodatkowe powtórki w danym dniu
+
+
+2.3. Zalety i ograniczenia
+
+
+2.3.1. Zalety
+    W algorytmie SuperMemo 2 można wyróżnić kilka istotnych zalet:
+    Pierwszą jest skuteczność przy długoterminowej nauce poprzez dynamiczne
+dostosowywanie odstępów między powtórkami. Algorytm używa współczynnika E-
+Factor, który służy do indywidualnego dopasowania terminu powtórzenia słownictwa do
+możliwości i trudności użytkownika.
+    Drugą zaletą jest prostota w implementacji algorytmu w aplikacji. Bardziej złożone
+systemy do nauki wymagają znacząco więcej czasu i zasobów do implementacji, w
+przeciwieństwie do SuperMemo 2, które opiera się na stosunkowo prostych wzorach
+matematycznych, dzięki czemu integracja z różnymi systemami do nauki jest ułatwiona.
+    Kolejną ważną zaletą jest wysoka elastyczność. Możliwość modyfikacji
+współczynnika trudności E-Factor dla każdego elementu osobno sprawia, że system może
+się dostosować do różnych rodzajów materiału - od prostych słówek po bardziej złożone
+zagadnienia.
+
+
+2.3.2. Ograniczenia
+   Ograniczenia algorytmu SuperMemo 2:
+   Pierwszym problemem jest brak uwzględnienia kontekstu nauki. Algorytm traktuje
+każdy element do nauki oddzielnie, ignorując powiązania między różnymi częściami
+
+
+
+                                         20
+materiału. W efekcie może się zdarzyć, że powiązane ze sobą informacje są powtarzane
+w zupełnie różnych odstępach czasu, co utrudnia efektywne przyswajanie wiedzy.
+    Istotnym ograniczeniem jest sztywne podejście algorytmu do niskich ocen. W
+przypadku ocen poniżej 3 algorytm nie tylko resetuje odstępy między kolejnymi
+powtórkami, ale również zachowuje niezmieniony współczynnik trudności E-Factor.
+Problemem jest to, że oceny poniżej 3 (czyli 0, 1, 2) są traktowane identycznie - resetują
+harmonogram powtórek bez wpływu na współczynnik trudności. Skutkiem tego jest to,
+że ocena 0 (całkowity brak wiedzy) jest traktowana identycznie jak ocena 2
+(nieprawidłowa odpowiedź, podczas gdy prawidłowa wydawała się łatwa do
+przypomnienia). Różnica między nimi powinna być widoczna, jednak w algorytmie nie
+występuje.
+    Przedstawione zalety i ograniczenia algorytmu SuperMemo 2 wskazują na jego
+przydatność w podstawowych zastosowaniach edukacyjnych, jednocześnie ukazując
+możliwości jego ulepszenia. Zrozumienie tych aspektów jest kluczowe dla rozwoju
+bardziej zaawansowanych systemów nauki z wykorzystaniem powtórek rozłożonych w
+czasie.
+
+
+
+
+                                           21
+3. Projekt
+3.1. Założenia projektowe
+
+
+3.1.1. Wymagania funkcjonalne
+  Frontend:
+  •   Interfejs ma być przejrzysty i intuicyjny, żeby użytkownik mógł z łatwością
+      używać systemu.
+  •   Responsywność dla różnych rozdzielczości, do wspierania różnych rodzajów
+      monitorów i rozmiarów okien aplikacji.
+  •   Tworzenie talii ze słownictwem.
+  •   Dynamiczna zmiana pozycji talii na stronie głównej.
+  •   Modyfikacja talii poprzez zmianę nazwy, zdjęcia oraz możliwość usunięcia.
+  •   Możliwość dodawania kart i dodawania do nich plików audio i zdjęć.
+  •   Możliwość edytowania w karcie słownictwa, w tym zmiany czcionki, koloru,
+      rozmiaru oraz stylu (na przykład pogrubienie, kursywa).
+  •   Dostosowywanie wielkości zdjęć w kartach.
+  •   Wgląd do statystyk w celu zobaczenia postępów w nauce.
+  •   Wybranie fiszek lub tłumaczenia słownictwa jako trybu nauki.
+  •   Implementacja zmodyfikowanego algorytmu SuperMemo2 do określenia, kiedy
+      słownictwo powinno zostać powtórzone.
+  •   Wspieranie przyszłego rozwoju aplikacji.
+  • Ułatwienie przyszłego rozwoju aplikacji poprzez modularną architekturę.
+  Backend:
+  •   Automatyczne tworzenie bazy danych wraz z tabelami przy każdym starcie
+      aplikacji, jeżeli nie istnieją.
+  •   Tworzenie struktury plików przechowującej zdjęcia, pliki dźwiękowe, bazę
+      danych przy starcie aplikacji, jeżeli nie istnieje.
+  •   Dodawanie i usuwanie zdjęć i plików audio.
+  •   Usuwanie nieużywanych zdjęć i plików audio przy usuwaniu słownictwa i talii.
+  •   Baza danych, która będzie przechowywać talie, słownictwo, powtórki oraz
+      historie powtórek.
+
+
+
+
+                                        22
+3.1.2. Wymaganie niefunkcjonalne
+      •   Dostępność
+          •   System musi działać w trybie offline bez konieczności stałego połączenia
+              z internetem.
+          •   Aplikacja musi być dostępna na różnych platformach (Windows, Linux,
+              macOS).
+      •   Wydajność
+          o Szybkie działanie bazy danych SQLite nawet przy ograniczonych
+            zasobach systemowych.
+          o Efektywne zarządzanie pamięcią przy operacjach na plikach
+            multimedialnych (zdjęcia, audio).
+      •   Użyteczność
+          o Intuicyjny i przejrzysty interfejs użytkownika.
+          o Responsywność dla różnych rozdzielczości ekranu.
+          o Spójna wizualizacja elementów interfejsu na różnych platformach.
+      •   Modyfikowalność
+          o Modularna     architektura        umożliwiająca      łatwe   rozszerzanie
+            funkcjonalności.
+      •   Przenośność
+          o Łatwość przenoszenia danych między urządzeniami.
+          o Minimalne wykorzystanie zasobów dyskowych.
+      •   Kompatybilność
+          o Wsparcie dla różnych formatów plików multimedialnych (jpg, jpeg, png,
+            gif, bmp, webp, svg).
+          o Zgodność z różnymi wersjami systemów operacyjnych.
+      •   Rozszerzalność
+          o Możliwość implementacji nowych funkcjonalności bez znaczących zmian
+             w istniejącej architekturze.
+      •   Testowanie
+          o Możliwość testowania aplikacji w środowisku Docker.
+          o Wsparcie dla testów jednostkowych.
+
+
+3.2. Użyte technologie
+  Przy tworzeniu projektu zostały użyte technologie takie jak:
+  •   TypeScript – język programowania, który służy jako rozszerzenie JavaScript o
+      statyczne typowanie. Został stworzony, aby zwiększyć wydajność pracy oraz
+      zminimalizować liczbę błędów w kodzie. Kod napisany w JavaScript jest
+      kompatybilny z TypeScript, choć może generować błędy typowania, które nie
+
+                                         23
+    wpływają na wykonanie programu. TypeScript kompiluje kod do standardowego
+    JavaScript, umożliwiając jego uruchamianie w dowolnym środowisku
+    wspierającym JavaScript [12].
+        TypeScript został wybrany, ponieważ pozwala na pisanie bardziej czytelnego
+    i łatwiejszego w utrzymaniu kodu. Statyczne typowanie pozwala na szybsze
+    wykrywanie błędów podczas kompilacji.
+
+•   React – biblioteka JavaScript do budowy interfejsów użytkownika. Pozwala na
+    dynamiczne tworzenie aplikacji internetowej. Przez swoją popularność React
+    posiada bogaty ekosystem, który przyśpiesza tworzenie oprogramowania,
+    Główne cechy React to [13]:
+       o Virtual DOM – uproszczony model drzewa DOM (ang. Document Object
+           Model) strony, który jest przechowywany w pamięci. Zamiast
+           bezpośrednio modyfikować DOM, React najpierw porównuje rzeczywisty
+           DOM z jego wirtualną wersją i aktualizuje tylko te elementy, które uległy
+           zmianie. Pozwala to na zmniejszenie koszt operacji na DOM i polepsza
+           wydajność aplikacji.
+       o JSX (JavaScript XML) – rozszerzenie składni JavaScript, za pomocą
+           którego można pisać kod XML (ang. Extensible Markup Language)
+           przypominający HTML (ang. HyperText Markup Language) w plikach
+           JavaScript, co ułatwia pisanie kodu w React. JSX jest przekształcany na
+           zwykły kod JavaScript przez narzędzia, takie jak Babel.
+       o Komponenty - fragment kodu wielokrotnego użytku, który odpowiada za
+           renderowanie interfejsu użytkownika. Pozwala na dzielenie aplikacji na
+           łatwe do zarządzania i wielokrotnego użytku części, które zwiększają
+           przejrzystość i ułatwiają organizację kodu.
+       React został wybrany głównie z powodu na swoją popularność, rozbudowany
+    ekosystem oraz możliwość tworzenia dynamicznych interfejsów użytkownika.
+
+•   TailwindCSS – framework CSS (ang. Cascading Style Sheets) umożliwiający
+    szybkie projektowanie stron internetowych bez konieczności przełączania się
+    między plikami HTML i CSS. nie zawiera gotowych komponentów, lecz oferuje
+    zestaw klas narzędziowych do bezpośredniego stylowania elementów HTML.
+    Dzięki TailwindCSS można uniknąć przełączania się między plikami HTML i
+    CSS, co ułatwia utrzymanie spójności stylów w całej aplikacji [14].
+        TailwindCSS został wybrany, ponieważ pozwala na zachowanie spójności w
+    stylizacji całej aplikacji. Dzięki niemu uniknięto nadmiarowego kodu CSS oraz
+    konieczności przełączania się między plikami HTML i CSS.
+
+
+
+
+                                       24
+•   Node.js – środowisko uruchomieniowe dla JavaScript, które pozwala na
+    wykonywanie kodu poza przeglądarką. Używa asynchronicznego modelu
+    wejścia/wyjścia opartym na zdarzeniach, co pozwala na obsługiwanie dużej
+    liczby połączeń sieciowych. Wspiera używanie modułów wbudowanych jak np.
+    fs (do obsługiwania plików systemu), oraz zewnętrznych modułów, które można
+    zainstalować przez na przykład npm [15].
+        Node.js został wybrany ze względu na wbudowane moduły, takie jak fs,
+    wsparcie dla bibliotek npm oraz fakt, że Electron natywnie wykorzystuje Node.js,
+    co ułatwiło integrację technologii.
+
+•   Electron – framework do tworzenia aplikacji desktopowych przy użyciu
+    technologii internetowych, takich jak JavaScript, HTML i CSS. Electron
+    wykorzystuje Chromium do wyświetlania interfejsu użytkownika oraz Node.js do
+    komunikacji z systemem (na przykład dostęp do systemu plików za pomocą
+    modułu fs) i obsługi logiki aplikacji. Electron umożliwia również łatwe tworzenie
+    aplikacji działających na wielu platformach, takich jak Windows, Linux i macOS
+    [16] [17].
+        Electron został wybrany, aby umożliwić działanie aplikacji na różnych
+    systemach operacyjnych bez konieczności tworzenia oddzielnych wersji dla
+    każdej platformy. Również integracja z Node.js oraz Chromium pozwala na
+    używanie sprawdzonych i wspieranych narzędzi.
+
+•   SQLite – biblioteka, która implementuje silnik bazy danych SQL bez potrzeby
+    konfiguracji i serwera. Biblioteka ma niewielki rozmiar i zapewnia wysoką
+    wydajność nawet jeżeli środowisko ma ograniczone zasoby. Baza ma możliwość
+    przenoszenia między różnymi systemami, co czyni ją popularną w aplikacjach
+    desktopowych. Jego możliwość przechowywania danych lokalnie i łatwego
+    przenoszenia między różnymi systemami idealnie wpisuje się w założenia
+    projektu, który ma wspierać działanie w trybie offline [18].
+        SQLite został wybrany, ponieważ pozwala na przechowywanie danych
+    lokalnie, co pozwala na korzystanie z systemu offline.
+
+•   Docker – platforma konteneryzacyjna umożliwiająca izolowanie aplikacji i jej
+    zależności w kontenerach. Ułatwia testowanie, wdrażanie oraz zapewnia spójność
+    środowisk. Dzięki Dockerowi możliwe jest uniknięcie problemów wynikających
+    z różnic w konfiguracji środowiska na różnych urządzeniach [19].
+        Użycie Dockera w systemie pozwala uniknąć błędów wynikających z różnic
+    w konfiguracji środowisk między deweloperem a środowiskiem produkcyjnym
+    użytkownika.
+
+
+
+                                       25
+3.3. Idea działania programu
+    Program jest narzędziem edukacyjnym, które ma za zadanie wspierać naukę języków
+obcych, wykorzystując algorytm SuperMemo 2. Jego działanie można opisać w kilku
+etapach:
+   •   Tworzenie talii i kart: Użytkownik może tworzyć nowe talie oraz dodawać do
+       nich karty, które można edytować.
+   •   Przygotowanie do nauki: Bazując na zmodyfikowanym algorytmie SuperMemo
+       2, system dynamicznie planuje harmonogram powtórek.
+   •   Proces nauki:
+           o Prezentacja karty: Wyświetlana jest karta, która zawiera słownictwo i
+              opcjonalne pliki multimedialne (zdjęcia i audio).
+           o Ocena trudności: Użytkownik może wybrać jedną ocenę z
+              czterostopniowej skali; przy trybie tłumaczenia słownictwa liczy się tylko
+              poprawność napisanego tłumaczenia.
+           o Analiza i dostosowanie: Wynik oceny wpływa na modyfikację
+              współczynnika trudności (E-Factor) oraz na termin kolejnej powtórki.
+    Dzięki tak zaprojektowanemu procesowi program nie tylko odwzorowuje zasady
+efektywnej nauki, ale także oferuje elastyczność i personalizację procesu nauczania.
+
+
+
+
+                                          26
+4. Implementacja i wdrożenie systemu
+
+4.1. Baza danych
+    W bazie danych zaprojektowano zestaw tabel mających na celu wspieranie systemu
+do nauki języków obcych, opartej na algorytmie SuperMemo 2. Tabele te umożliwiają
+zarządzanie taliami kart, słownictwem i procesem powtórek oraz historią nauki,
+zapewniając spójność danych i możliwość analizy postępów użytkownika.
+
+
+4.1.1. Struktura tabel bazy danych
+     Poniżej przedstawiono strukturę poszczególnych tabel w bazie danych. W tabelach
+4.1, 4.2, 4.3 oraz 4.4 znajdują się opisy kolumn dla wszystkich tabel w bazie danych:
+
+Tabela 4.1. Struktura tabeli decks
+ Nazwa kolumny Opis
+ deck_id            Główny klucz tabeli, unikalny identyfikator dla każdej talii
+ deck_name          Nazwa talii, wymagane pole
+ deck_img           Ścieżka lub nazwa obrazka reprezentującego talię
+ deck_position      Pozycja talii w sortowaniu - określa, na której pozycji talia powinna
+                    być wyświetlona
+
+Tabela 4.2. Struktura tabeli vocabulary
+ Nazwa kolumny        Opis
+ vocabulary_id        Główny klucz tabeli, unikalny identyfikator dla każdego słowa lub
+                      frazy
+ deck_id              Klucz obcy wskazujący na tabelę decks, pozwala powiązać słowo
+                      z konkretną talią
+ front_word           Tekst na przodzie karty, wymagane pole
+ back_word            Tekst na odwrocie karty, wymagane pole
+ audio_name           Nazwa pliku audio powiązanego z kartą
+ front_word_html HTML reprezentujący przód karty, opcjonalne pole
+ back_word_html       HTML reprezentujący tył karty, opcjonalne pole
+ front_desc_html      HTML opisujący dodatkowe informacje na przodzie karty
+ back_desc_html       HTML opisujący dodatkowe informacje na odwrocie karty
+
+Tabela 4.3. Struktura tabeli reviews
+ Nazwa kolumny        Opis
+ review_id            Główny klucz tabeli, unikalny identyfikator dla każdej recenzji
+
+                                           27
+ vocabulary_id       Klucz obcy wskazujący na tabelę vocabulary, powiązanie recenzji
+                     z konkretnym słowem
+ review_date         Data, kiedy recenzja została wykonana
+ ease_factor         Współczynnik łatwości (dla algorytmu SuperMemo 2), domyślnie
+                     2.5. Służy do obliczania kolejnych terminów powtórek w
+                     zależności od zapamiętywania przez użytkownika
+ repetition          Liczba powtórzeń dla danego słowa, domyślnie 1
+
+Tabela 4.4. Struktura tabeli reviews_history
+
+ Nazwa kolumny     Opis
+ review_history_id Główny klucz tabeli, unikalny identyfikator dla każdego wpisu w
+                   historii recenzji
+ vocabulary_id     Klucz obcy wskazujący na tabelę vocabulary, powiązanie z
+                   konkretnym słowem
+ ease_factor       Współczynnik łatwości (dla algorytmu SuperMemo 2), obliczany
+                   na podstawie jakości powtórek
+ quality           Ocena jakości recenzji (dla algorytmu SuperMemo 2) - ocenia, jak
+                   dobrze użytkownik zapamiętał dane słowo podczas powtórki
+ repetition        Liczba powtórzeń słowa w danym momencie
+ review_date       Data recenzji w historii
+
+   Na zdjęciu 4.1 przedstawiono graficzny schemat bazy danych.
+
+
+
+
+                                           28
+                       Zdjęcie 4.1. Schemat bazy danych
+
+
+4.1.2. Indeksy bazy danych
+   Dla polepszenia wydajności bazy danych zastosowano odpowiednie indeksy dla
+kluczowych tabel. Indeksy zostały stworzone tak, by zoptymalizować najczęściej
+wykonywane operacje.
+   Na zdjęciu 4.2. znajdują się kody do stworzenia indeksów.
+
+
+
+
+                                     29
+          Zdjęcie 4.2: Kod do stworzenia użytych w bazie danych indeksów
+
+   W tabeli 4.5. znajduje się omówienie zastosowanych indeksów:
+
+Tabela 4.5. Omówienie zastosowanych indeksów
+
+ Nazwa indeksu                    Przeznaczenie
+ idx_deck_position                Zoptymalizowano pod kątem częstego
+                                  sortowania talii według pozycji malejąco
+ idx_vocabulary_deck_id           Przyśpiesza filtrowanie danych według id talii
+                                  oraz operacje łączenia z tabelą decks
+ idx_vocabulary_front_word        Optymalizuje wyszukiwanie słów po "Front
+                                  word", używane jest to przy wyszukiwaniu kart
+                                  ze słownictwem
+ idx_vocabulary_audio_content     Przyśpiesza sprawdzanie istnienia pliku audio
+ idx_reviews_vocabulary_id        Przyśpiesza operacje łączenia z tabelą vocabulary
+ idx_reviews_date_repetition      Optymalizuje filtrowanie według daty i liczby
+                                  powtórzeń
+ idx_reviews_ease_repetition      Wspomaga zliczanie wyuczonych słów
+ idx_reviews_history_vocabulary   Przyśpiesza wyszukiwanie historii powtórek
+ idx_reviews_history_date         Optymalizuje grupowanie według dat
+
+
+4.2. Implementacja zmodyfikowanego algorytmu SM-2
+    Przy implementacji systemu dokonano modyfikacji do algorytmu SuperMemo 2
+(SM-2). Wprowadzone zmiany mają na celu usprawnienie korzystania z systemu oraz
+ułatwienie nauki języków obcych. Opis dokonanych modyfikacji:
+
+
+
+
+                                       30
+4.2.1. Zmiana pierwsza - Modyfikacja systemu oceniania
+    W oryginalnym algorytmie SuperMemo 2 wykorzystywano sześciostopniową skalę
+od 0 - całkowity brak wiedzy, do 5 - doskonała odpowiedź. W zmodyfikowanej wersji
+istnieje czterostopniowa skala oceny:
+   •   easy - poprawna odpowiedź bez wahania
+   •   good - prawidłowa odpowiedź z lekkim wahaniem
+   •   hard - odpowiedź częściowo poprawna i/lub z dużym wahaniem
+    • again - odpowiedź całkowicie błędna
+    Zmiana ta upraszcza podjęcie decyzji przez użytkownika podczas powtórek, jak i
+nauki materiału. W oryginalnym algorytmie SuperMemo 2 mogły występować sytuacje,
+gdzie różnice między ocenami były na tyle do siebie podobne, że mogło to powodować
+problem z wybraniem odpowiedniej oceny. Zwłaszcza problemem mogły się okazać
+rozróżnienie ocen: 1 - nieprawidłowa odpowiedź przy zapamiętanej prawidłowej oraz 2
+- nieprawidłowa odpowiedź, gdy prawidłowa wydawała się łatwa do przypomnienia.
+Zaimplementowana zmiana ogranicza niejasności, dzięki czemu uczenie się jest bardziej
+intuicyjne i zrozumiałe.
+
+
+4.2.2. Zmiana druga – Modyfikacja resetu powtórek w algorytmie
+    W oryginalnym algorytmie, podczas resetowania powtórek (w przypadku uzyskania
+oceny niższej niż 3), współczynnik E-Factor pozostawał bez zmian. Oznaczało to, że
+odpowiedzi ocenione jako 0, 1 lub 2 działały identycznie - resetowały harmonogram
+powtórek bez wpływu na współczynnik trudności. W zmodyfikowanej wersji usunięto to
+ograniczenie, co powoduje, że tylko odpowiedź "again" resetuje powtórkę, a każda ocena
+wpływa na modyfikację współczynnika E-Factor. Dzięki temu system lepiej odróżnia
+trudność materiału, nawet przy słabszych odpowiedziach algorytm dostosowuje
+współczynnik trudności, co pozwala na dokładniejsze odzwierciedlenie rzeczywistych
+problemów użytkownika z danym materiałem. Ta zmiana sprawia, że system jest bardziej
+elastyczny i lepiej dostosowuje się do indywidualnego procesu uczenia się, w
+przeciwieństwie do oryginalnego algorytmu, gdzie słabsze odpowiedzi były traktowane
+jednakowo.
+
+
+4.2.3. Podsumowanie zmian
+     Zaimplementowane zmiany do algorytmu SuperMemo 2 uprościły interfejs
+użytkownika i polepszyły system oceniania. Poprzez zmianę systemu oceniania na
+bardziej intuicyjny oraz modyfikację sposobu działania współczynnika trudności, system
+stał się bardziej przyjazny dla użytkownika, zachowując jednocześnie swoją skuteczność.
+Zmiany te pokazują, jak teoretyczny algorytm może zostać dostosowany do
+
+
+                                          31
+współczesnych potrzeb użytkowników, co jest kluczowym aspektem w rozwoju
+systemów edukacyjnych.
+
+
+4.3. Struktura plików
+   Struktura plików jest wzorowana na zasadach metodologii Bulletproof React [20].
+Każdy folder odpowiada za określoną funkcjonalność, co wspiera organizację pracy i
+umożliwia skalowalność aplikacji. Zdjęcie 4.3 przedstawia strukturę plików.
+
+
+
+
+                        Zdjęcie 4.3. Zdjęcie struktury plików
+
+   Wyjaśnienie funkcjonalności poszczególnych plików:
+
+   •   dataResources - Przechowuje różne zasoby używane w aplikacji, w tym dane oraz
+       pliki multimedialne podzielone na:
+           o database - Folder zawierający bazę danych SQLite.
+
+                                         32
+       o mediaFiles - Przechowuje multimedia używane w aplikacji, podzielone
+         na:
+             ▪ audio – Pliki dźwiękowe używane w kartach.
+             ▪ deckImages – Zdjęcia używane w taliach.
+             ▪ Images – Zdjęcia używane w kartach.
+•   dist-electron - Przechowuje pliki wynikowe aplikacji po skompilowaniu jej w
+    kontekście Electrona. zawiera build aplikacji desktopowej.
+•   Electron - Zawiera konfiguracje oraz kod backendowy odpowiedzialny za
+    funkcjonalność Electrona.
+•   node_modules - Automatycznie generowany katalog przez npm, zawiera
+    wszystkie zależności aplikacji.
+•   public – Posiada zasoby publiczne, takie jak ikony.
+•   src – Główny katalog źródłowy systemu. Jest on podzielony na poniższe katalogi:
+        o API - Zawiera implementacje funkcji i konfiguracje związane z
+            komunikacją z backendem oraz zarządzaniem danymi. Podzielony na:
+                ▪ nodeFileSystem – Funkcje korzystające z systemu plików node.js.
+                ▪ Redux – Zarządza globalnym stanem aplikacji i obsługuje
+                     komunikację z backendem za pomocą redux toolkit query.
+                ▪ sqLite – Funkcje i zapytania powiązane z lokalną bazą SQLite.
+        o app - Zarządza główną strukturą aplikacji, dostarczając providery (redux,
+            router) oraz konfigurację routingu, która łączy różne ekrany i
+            funkcjonalności w spójną całość.
+        o assets - Przechowuje statyczne zasoby, takie jak obrazy, ikony czy pliki
+            fontów.
+        o components - Zbiór wielokrotnie używanych komponentów wizualnych,
+            które są niezależne od konkretnej logiki biznesowej.
+        o features - Funkcjonalności, które stanowią odrębne moduły aplikacji.
+            Każdy moduł zawiera logikę, komponenty oraz style związane z daną
+            funkcją.
+        o hooks - Niestandardowe hooki Reactowe, które ułatwiają obsługę złożonej
+            logiki i mogą być używane w różnych częściach aplikacji.
+        o screens - Przechowuje widoki (strony) aplikacji, odpowiadają
+            poszczególnym ekranom.
+        o tests - Zawiera testy jednostkowe.
+        o types - Definiuje interfejsy oraz typy TypeScript.
+        o utils - Pomocnicze funkcje, które są używane w różnych częściach
+            projektu.
+
+
+
+
+                                       33
+4.4. Strona główna
+    Strona główna stanowi podstawowy interfejs aplikacji, który użytkownik widzi po jej
+uruchomieniu. Aplikacja umożliwia tworzenie własnych talii kart do nauki.
+    Każda talia wymaga nazwy, która pozwala na jej łatwą identyfikację wśród innych
+zestawów. Po utworzeniu, talia znajduje się na samym szczycie listy, jednak możliwa jest
+zmiana jej pozycji poprzez przeciągnięcie i opuszczenie w wybranym miejscu. Istnieje
+również możliwość modyfikacji nazwy istniejącej talii oraz jej całkowitego usunięcia w
+razie potrzeby.
+    Każda talia zawiera dwa kluczowe przyciski. Jeden z nich umożliwia naukę nowego
+słownictwa i pokazuje liczbę kart, które są dostępne do nauczenia. Drugi przycisk
+pozwala na powtórzenie wcześniej poznanego słownictwa i również wyświetla liczbę kart
+do powtórzenia.
+    Jeżeli istnieje przynajmniej jedna karta, która została wyświetlona przez
+użytkownika, pojawia się nowy element w talii - wskaźnik wyuczonego słownictwa.
+Składa się on z liczby aktualnie wyuczonych słów, liczby wszystkich słów w talii oraz
+paska postępu, który graficznie wizualizuje postęp w nauce. Słownictwo jest uznawane
+za wyuczone, kiedy E-Factor jest większy niż 2.5, oraz liczba powtórzeń jest większa,
+lub równa 3.
+    System automatycznie generuje ikonę dla nowo utworzonej talii. Jest to kwadrat o
+zaokrąglonych rogach z widoczną literą „D” w centralnej części. Dla lepszego
+rozróżnienia talii, tło ikon dobierane jest losowo spośród sześciu kolorów: żółtego,
+niebieskiego, czerwonego, zielonego, fioletowego oraz różowego.
+     Zdjęcie 4.4 przedstawia wygląd strony.
+
+
+
+
+                                          34
+                            Zdjęcie 4.4. Strona główna
+
+    Zmiana ikony jest możliwa poprzez osobne menu (przedstawione na zdjęciu 4.5).
+Wspierane formaty zdjęć to: jpg, jpeg, png, gif, bmp, webp, svg. Zalecane jest, aby
+zdjęcie miało wymiary 64 × 64 piksele, co zapewnia najlepszy wygląd ikony.
+
+
+
+
+                                        35
+                      Zdjęcie 4.5. Menu do zmiany zdjęcia w talii
+
+
+4.5. Strona dodawania karty ze słownictwem
+    Strona dodawania karty ze słownictwem umożliwia dodawanie nowych kart do
+wybranej talii. Na samej górze znajduje się rozwijane menu zawierające wszystkie
+istniejące talie, dzięki czemu użytkownik może wybrać konkretną talię, do której chce
+dodać kartę ze słownictwem.
+    Poniżej znajdują się narzędzia do zmiany wyglądu tekstu, takie jak: rozmiar czcionki,
+kolor tekstu, kolor tła, wyrównanie tekstu i zdjęć, pogrubienie, podkreślenie, indeks
+górny, indeks dolny, kursywa, przekreślenie, wstawienie linii poziomej, usunięcie
+zastosowanego stylu tekstu oraz dodanie zdjęcia.
+    Strona posiada cztery pola tekstowe: „Front word”, „Back word”, „Front word
+description”, „Back word description”. Dwa pierwsze pola służą jako główne elementy
+karty, są obowiązkowe i wykorzystywane np. do wyszukiwania słówek czy powtórek.
+Natomiast pola opisów („Front word description” i „Back word description”) są
+opcjonalne i przeznaczone do dodatkowych informacji.
+
+
+
+                                           36
+    Do każdego pola tekstowego można dodać zdjęcie na dwa sposoby: poprzez
+wcześniej wymienione narzędzie do dodawania zdjęć lub przez przeciągnięcie (na
+przykład z pulpitu) na wybrane pole. Wspierana jest również dynamiczna zmiana
+wymiarów zdjęcia poprzez przeciąganie przy krawędziach.
+    W sekcji „Audio” istnieje możliwość dodania pliku audio, jak i jego usunięcia. Każde
+pole nieobowiązkowe może zostać schowane, jeżeli użytkownik uzna, że nie jest mu
+potrzebne.
+    Zdjęcie 4.6. przedstawia wygląd strony.
+
+
+
+
+                 Zdjęcie 4.6. Strona dodawania karty ze słownictwem
+
+    Możliwy jest podgląd karty, jak będzie wyglądać podczas nauki przy użyciu trybu
+fiszek (Zdjęcie 4.7.).
+
+
+
+
+                                          37
+                               Zdjęcie 4.7. Podgląd karty
+
+
+4.6. Strona do przeglądania kart w taliach
+    Strona do przeglądania kart w talii umożliwia zarówno ich przeglądanie, jak i
+modyfikację. Interfejs podzielony jest za pomocą niebieskiego suwaka, który pozwala na
+dynamiczną zmianę rozmiarów lewej i prawej części.
+    Po prawej stronie znajduje się sekcja do modyfikacji kart, której działanie jest
+zbliżone do strony dodawania kart ze słownictwem, z tą różnicą, że zamiast dodawania
+nowych kart umożliwia aktualizację istniejących.
+    Po lewej stronie wyświetlana jest lista kart w taliach. Na górze znajduje się rozwijane
+menu, które umożliwia wybór konkretnej talii lub przeglądanie kart ze wszystkich talii.
+Poniżej znajduje się pole tekstowe, które pozwala wyszukiwać konkretne karty na
+podstawie „Front word”. Wybór karty do modyfikacji jest możliwy poprzez kliknięcie na
+nią. Obok każdej pozycji znajduje się przycisk umożliwiający jej usunięcie.
+    Zdjęcie 4.8 przedstawia wygląd strony.
+
+
+
+
+                                            38
+                   Zdjęcie 4.8. Strona do przeglądania kart w taliach
+
+
+4.7. Strona do nauki słownictwa
+    Jedną z możliwych form nauki słownictwa jest fiszka. Fiszka składa się z dwóch
+stron: przedniej i tylnej.
+    Przednia strona zawiera główne słówko („Front word”), opcjonalny plik dźwiękowy,
+który odtwarzany jest automatycznie przy wyświetleniu karty, z możliwością ponownego
+odsłuchania, oraz opcjonalny opis („Front word description”).
+    Tylna strona również składa się z dwóch części, oddzielonych poziomą linią. Część
+górna zawiera identyczną zawartość jak strona przednia, natomiast część dolna prezentuje
+przetłumaczone główne słówko („Back word”), opcjonalny plik dźwiękowy oraz opis.
+    Na samym dole fiszki znajdują się cztery przyciski, które służą do oceny trudności
+danego słownictwa.
+    Zdjęcie 4.9 przedstawia tylną stronę fiszki.
+
+
+
+
+                                          39
+                           Zdjęcie 4.9. Tylna strona fiszki
+
+    Kolejną możliwą formą nauki jest tłumaczenie słownictwa. Jej wygląd jest podobny
+do fiszki, jednak posiada pewne różnice.
+    Na przedniej stronie znajduje się pole tekstowe, do którego użytkownik wpisuje
+tłumaczenie. Na tylnej stronie, na górze, jeżeli odpowiedź była poprawna, to wyświetli
+się wpisana odpowiedź w kolorze zielonym, a w razie błędnej odpowiedzi kolor jest
+czerwony.
+    Zdjęcie 4.10. przedstawia tylną stronę tłumaczenia słownictwa.
+
+
+
+
+                                         40
+     Zdjęcie 4.10. Tylna strona tłumaczenia słownictwa z prawidłową odpowiedzią
+
+
+4.8. Strona ze statystykami
+    Każda statystyka posiada jeden wspólny element, którym jest pasek nawigacyjny,
+używany do przemieszczania się między statystykami. Pozostałe elementy są unikalne
+dla poszczególnych rodzajów statystyk
+    Rodzaje statystyk:
+
+
+4.8.1. Graf z historią powtórek
+    Pierwszą statystyką jest graf z historią powtórek. Interfejs jest podzielony za pomocą
+niebieskiego suwaka, który pozwala na dynamiczną zmianę rozmiarów lewej i prawej
+części. Po prawej stronie paska nawigacyjnego znajduje się strona do przeglądania kart
+w taliach, której działanie jest identyczne jak w punkcie 4.6, z paroma różnicami.
+Pierwszą z nich jest brak możliwości usuwania kart, a drugą brak możliwości zaznaczenia
+karty w celu jej modyfikacji - zaznaczanie karty służy jedynie do wyświetlania statystyk
+dla danej karty.
+
+
+                                           41
+    W prawej części strony, na górze, znajduje się sekcja, w której widoczna jest nazwa
+aktualnie wybranej karty. Poniżej znajdują się aktualne wartości dla wybranej karty, do
+których należą: Ease Factor (E-Factor), skala oceny oraz data, kiedy karta była przejrzana.
+Niżej umiejscowione jest rozwijane menu, gdzie można wybrać dane do wyświetlenia na
+osi Y grafu - według Ease Factor lub skali ocen.
+    Głównym elementem jest graf, który wizualizuje wybrane dane z rozwijanego menu.
+Graf składa się również z wierzchołków, których liczba odpowiada liczbie historii
+powtórek dla karty (oś X). Po najechaniu na wierzchołek wyświetlane są dane, takie jak
+Ease Factor, jakość oceny i data, kiedy powtórka została wykonana.
+    Zdjęcie 4.11. przedstawia graf z historią powtórek.
+
+
+
+
+                         Zdjęcie 4.11. Graf z historią powtórek
+
+
+4.8.2. Mapa cieplna aktywności w postaci kalendarza
+    Kolejną statystyką jest mapa cieplna aktywności w postaci kalendarza. Na górze
+znajdują się dwa rozwijane menu. Lewe menu pojawia się wtedy, gdy historie powtórek
+zawierają daty z różnych lat (na przykład 2024, 2025). W przeciwnym wypadku menu
+jest zastępowane zwykłym tekstem przedstawiającym jedyny rok.
+
+                                            42
+    Po prawej stronie znajduje się rozwijane menu z trzema opcjami: wyświetlenie liczby
+nowych słówek, liczby powtórek oraz sumy nowych słówek i powtórek. Wybranie
+którejkolwiek z opcji powoduje zmianę wyglądu mapy cieplnej.
+    Po najechaniu na konkretny dzień wyświetlają się dane, takie jak: data, liczba nowych
+słówek, liczba powtórek oraz suma obu wartości.
+    Zdjęcie 4.12. przedstawia wygląd mapy cieplnej aktywności w postaci kalendarza
+
+
+
+
+             Zdjęcie 4.12. Mapa cieplna aktywności w postaci kalendarza
+
+
+
+
+                                           43
+5. Uruchomienie aplikacji i testy
+
+5.1. Testy jednostkowe
+    Testy jednostkowe są ważnym elementem procesu zapewniania jakości
+oprogramowania. Są one używane do sprawdzania poprawności działania
+poszczególnych funkcji i modułów aplikacji. Do implementacji testów wykorzystano
+Jest. Jest to popularne narzędzie do testowania w JavaScript i TypeScript.
+    Testy jednostkowe pokrywają funkcje odpowiedzialne za obsługę endpointów API i
+za zarządzanie plikami. Testy sprawdzają poprawność przesyłanych danych, odbieranych
+odpowiedzi oraz obsługę błędów.
+
+
+5.1.1. Testowanie endpointów
+   Poniżej znajduję się opis grup testów oraz ich przeznaczenie:
+
+   Zarządzanie słownictwem
+   •   getVocabulary:
+          o Opis funkcji - Pobiera listę słownictwa na podstawie określonych
+             parametrów, takich jak ID talii, limit wyników i przesunięcie (offset).
+          o Testy - Weryfikują, czy funkcja wysyła żądanie z odpowiednimi
+             parametrami oraz sprawdzają poprawność odbieranych danych.
+   •   updateVocabulary:
+          o Opis funkcji - Aktualizuje dane istniejącego słownictwa w bazie danych.
+          o Testy - Weryfikują poprawność przesyłanych danych do backendu oraz
+             sprawdzają, czy słownictwo zostało zaktualizowane.
+   •   addVocabulary:
+          o Opis funkcji - Dodaje nowe słownictwo do bazy danych.
+          o Testy - Weryfikują poprawność nowego dodawanego słownictwa oraz czy
+             odpowiednie parametry są przesyłane w żądaniu.
+   •   deleteVocabulary:
+           o Opis funkcji - Usuwa wskazane słownictwo na podstawie jego ID.
+           o Testy - Weryfikują, czy funkcja poprawnie identyfikuje element do
+              usunięcia na podstawie ID oraz sprawdzają, czy został on usunięty z bazy
+              danych.
+   •   getVocabularyToReview:
+          o Opis funkcji - Pobiera listę słownictwa do powtórki na podstawie ID talii
+             i limitu.
+          o Testy - Weryfikują, czy dane są zwracane zgodnie z parametrami żądania.
+
+                                          44
+Zarządzanie taliami
+•   getDecks:
+       o Opis funkcji - Pobiera wszystkie dostępne talie, zwracając informacje o
+          ich nazwach, obrazach i pozycjach.
+       o Testy - Weryfikują, czy wszystkie talie są poprawnie zwracane oraz czy
+          format danych jest zgodny z oczekiwanym.
+•   createDeck:
+        o Opis funkcji - Tworzy nową talię z podanymi parametrami, takimi jak
+           nazwa, obrazek i pozycja.
+        o Testy - Weryfikują, czy funkcja poprawnie tworzy talię w bazie danych
+           oraz czy parametry przesyłane w żądaniu są prawidłowe.
+•   deleteDeck:
+        o Opis funkcji - Usuwa wybraną talię na podstawie jej ID.
+        o Testy - Weryfikują, czy funkcja poprawnie identyfikuje talię do usunięcia
+           oraz czy została ona usunięta z bazy danych.
+•   updateDeck:
+       o Opis funkcji - Aktualizuje dane istniejącej talii, takie jak nazwa, pozycja
+          lub inne właściwości.
+       o Testy - Weryfikują, czy dane są poprawnie przesyłane i aktualizowane
+          oraz czy odpowiednia talia została zaktualizowana.
+•   updateDeckImg:
+       o Opis funkcji - Aktualizuje obraz przypisany do talii, umożliwiając jego
+          zmianę.
+       o Testy - Weryfikują, czy obraz został poprawnie zmieniony oraz czy
+          parametry przesyłane w żądaniu są zgodne z oczekiwaniami.
+
+Historia i statystyki nauki
+•   createReviewsHistory:
+        o Opis funkcji - Tworzy nowy wpis w historii powtórek dla wybranego
+           słownictwa, zapisując takie dane jak data, trudność, jakość i liczba
+           powtórzeń.
+        o Testy - Weryfikują, czy wpis jest poprawnie tworzony oraz czy wszystkie
+           wymagane parametry są przesyłane.
+•   getReviewsHistory:
+       o Opis funkcji - Pobiera historię powtórek dla wybranego słownictwa,
+           zwracając dane o dacie i jakości powtórek.
+       o Testy - Weryfikują, czy dane są poprawnie pobierane oraz czy historia
+           zwracana jest w odpowiednim formacie.
+•   getReviewAndNewCountPerDate:
+
+                                       45
+       o Opis funkcji - Pobiera liczbę nowych słów oraz powtórek dla wskazanego
+         dnia.
+       o Testy - Weryfikują, czy dane są poprawnie przetwarzane i zwracane oraz
+         czy format danych odpowiada wymaganiom.
+
+Aktualizacja przeglądów
+•   updateReview:
+       o Opis funkcji – Aktualizuje parametry powtórki, takie jak data,
+           współczynnik trudności, jakość powtórki oraz liczba powtórzeń.
+       o Testy - Weryfikują, czy dane są poprawnie przesyłane do backendu oraz
+           czy odpowiednie rekordy w bazie danych zostały zaktualizowane.
+
+    Na zdjęciu 5.1. można zobaczyć, że wszystkie testy zostały zakończone
+    pomyślnie.
+
+
+
+
+                                    46
+                         Zdjęcie 5.1. Wyniki testów API
+
+
+5.1.2. Testowanie funkcji zarządzania plikami
+  handleFileInsert:
+  •   Opis funkcji - Wstawia plik do edytora (pola tekstowego). Obsługuje obrazy,
+      sprawdzając ich typ. Wysyła dane do backendu, a następnie odbiera odpowiedź i
+      wstawia obraz do edytora na podstawie ścieżki pliku.
+  •   Testy – Sprawdza, czy plik obrazu jest poprawnie wstawiany, a także obsługuje
+      przypadki błędów (np. jeśli plik nie jest obrazem).
+
+
+
+                                       47
+handleFileCopied:
+•   Opis funkcji - Kopiuje plik z lokalizacji użytkownika do folderu publicznego w
+    aplikacji. Wysyła dane do backendu i obsługuje odpowiedź potwierdzającą sukces
+    lub błąd operacji.
+•   Testy – Sprawdza, czy plik jest poprawnie kopiowany do folderu publicznego
+    oraz czy obsługiwane są odpowiednie zdarzenia zwrotne.
+
+handleFileRemove:
+•   Opis funkcji - Usuwa plik z folderu publicznego. Wysyła odpowiednie dane do
+    backendu i oczekuje potwierdzenia sukcesu lub błędu.
+•   Testy - Sprawdza, czy plik jest poprawnie usuwany oraz czy obsługiwane są
+    odpowiednie zdarzenia zwrotne.
+
+handleGetAllFiles:
+•   Opis funkcji - Pobiera listę wszystkich plików z folderu publicznego.
+•   Testy - Sprawdza, czy funkcja zwraca poprawną listę plików oraz czy obsługuje
+    błędy w przypadku niepowodzenia operacji.
+
+handleCheckIfFileExists:
+•   Opis funkcji - Sprawdza, czy plik istnieje w folderze publicznym. Wysyła dane
+    do backendu i zwraca odpowiedź w postaci true, false lub null w zależności od
+    wyniku.
+•   Testy - Sprawdza, czy funkcja poprawnie identyfikuje istnienie pliku, a także czy
+    obsługuje przypadki, gdy nazwa pliku jest pusta lub błędna.
+
+    Na zdjęciu 5.2. można zobaczyć, że wszystkie testy zostały zakończone
+    pomyślnie.
+
+
+
+
+                                       48
+                Zdjęcie 5.2. Wyniki testów funkcji zarządzania plikami
+
+
+5.1.3. Wnioski testów jednostkowych
+   Przeprowadzone testy wykazały, że zaimplementowane funkcjonalności działają
+zgodnie z oczekiwaniami w różnych scenariuszach:
+   •   Wszystkie endpointy API zostały poprawnie przetestowane pod kątem
+       parametrów żądań, formatów danych oraz obsługi błędów.
+   •   Funkcje zarządzania plikami przeszły testy poprawności operacji takich jak
+       wstawianie, kopiowanie, usuwanie oraz weryfikacja istnienia plików.
+
+
+5.2. Uruchomienie aplikacji w Dockerze
+    Do weryfikacji uruchomienia aplikacji wykorzystano kontener Docker, do którego
+zostało skonfigurowane środowisko niezbędne do działania aplikacji.
+    Kod w pliku Dockerfile (zdjęcie 5.3.) pozwala na instalację zależności systemowych
+i aplikacyjnych, pozwala również na przygotowanie środowiska uruchomieniowego, jak
+i włączenie serwera Xvfb, który potrzebuje obsługi interfejsu graficznego dla aplikacji
+Electron.
+    Głównym zadaniem zastosowania Dockera było rozwiązanie problematycznej
+instalacji SQLite w aplikacji Electron. Kod w Dockerfile pozwala na instalację
+niezbędnych bibliotek i uruchomienie aplikacji w trybie deweloperskim, było to
+potrzebne, żeby sprawdzić poprawność kompilacji i działania bazy danych.
+
+
+
+                                          49
+    Warto jednak zaznaczyć, że kod Dockera nie był zaprojektowany do pełnego
+testowania aplikacji. Ogranicza się on tylko do przygotowania środowiska, jak i instalacji
+zależności. Brak pełnej integracji z interfejsem graficznym nie pozwala na testowanie
+funkcji aplikacji.
+
+
+
+
+                          Zdjęcie 5.3. Kod w pliku Dockerfile
+                                           50
+5.3. Testy Empiryczne
+    W poprzednich rozdziałach skoncentrowano się na przetestowaniu pojedynczych
+funkcji systemu. Ważnym aspektem, z punktu widzenia użytkownika, jest sprawdzenie,
+czy wszystkie elementy aplikacji współdziałają ze sobą w sposób spójny. Testy
+empiryczne polegają na próbach korzystania z systemu w sposób zbliżony do
+rzeczywistego użytkowania. Podczas wykonywania testów obserwuje się działanie
+programu, jednocześnie odnotowując błędy i niedoskonałości systemu. Na przykład
+funkcja może poprawnie działać w izolowanym środowisku, jednak w specyficznych
+warunkach, takich jak nieprzewidziane dane wejściowe, może powodować błędy.
+
+   Przetestowane zostały różne funkcje i komponenty systemu. Zanotowano następujące
+wyniki:
+   •   Zarządzanie taliami i kartami
+       Tworzenie, edycja i usuwanie talii oraz kart działa zgodnie z założeniami
+       projektowymi. System poprawnie aktualizuje interfejs użytkownika oraz bazę
+       danych. Możliwość dodawania multimediów działa poprawnie.
+
+   •   Przeglądanie kart w taliach oraz ich modyfikacja
+       Wyświetlanie kart w wybranych taliach oraz wyszukiwanie po słowach
+       kluczowych działa poprawnie. Modyfikowanie zaznaczonej karty wykonuje się
+       bez problemów.
+
+   •   Funkcje powtórek
+       Algorytm SuperMemo 2 działa zgodnie z oczekiwaniami, dynamicznie
+       dopasowując       harmonogram      powtórek    do    postępów   użytkownika.
+       Zaimplementowana czterostopniowa skala ocen w fiszkach działa poprawnie,
+       podobnie jak ocenianie w trybie tłumaczenia słownictwa. W obu przypadkach E-
+       Factor jak i liczba powtórzeń są odpowiednio aktualizowane.
+
+   •   Statystyki
+       Statystyki takie jak wykresy postępów oraz mapa cieplna aktywności, prezentują
+       dane w sposób prawidłowy i przejrzysty.
+
+   Na podstawie przeprowadzonych testów można stwierdzić, że system działa
+poprawnie, spełniając kluczowe wymagania projektowe.
+
+
+
+
+                                         51
+6. Wnioski i uwagi końcowe
+
+6.1. Efekty i osiągnięcia pracy
+    W ramach pracy opracowano wieloplatformowy system do nauki języków obcych,
+który wykorzystuje algorytm SuperMemo 2. Pozwala on użytkownikowi na korzystanie
+z systemu w trybie offline, oraz na personalizacje nauki. Modyfikacja algorytmu
+SuperMemo 2 pozwoliła na lepsze dopasowanie harmonogramu powtórek do potrzeb
+użytkownika.
+
+
+6.2. Interpretacja wyników i ich ocena
+    Wyniki pracy wskazują na zadowalającą efektywność systemu. Implementacja
+algorytmu SuperMemo 2 uprościła ocenianie kart, przez co cały proces stał się bardziej
+intuicyjny. Statystyki nauki i historii powtórek pozwalają na śledzenie postępów przez
+użytkownika.
+
+
+6.3. Możliwości kontynuacji i rozszerzenia tematu
+   •   Dodanie opcji na przechowywanie i synchronizacje danych w chmurze.
+   •   Rozszerzenie funkcjonalności o naukę gramatyki czy wymowy z wykorzystaniem
+       technologii rozpoznawania głosu.
+   •   Integracja z różnymi platformami e-learningowymi, co umożliwi korzystanie z
+       gotowych zestawów.
+   •   Dodanie większej ilości statystyk.
+
+
+6.4. Wnioski
+   •   Zaimplementowano zmiany do algorytmu SuperMemo 2, zwiększając jego
+       elastyczność.
+   •   Zastosowanie SQLite zapewniło szybki dostęp do danych i ich łatwe przenoszenie
+       między urządzeniami, co podnosi mobilność systemu.
+   •   Tryb offline poprawia doświadczenie użytkownika.
+   •   Użyte technologie pozwoliły na stworzenie systemu o szerokiej kompatybilności
+       między platformami.
+   •   Wprowadzenie mapy cieplnej aktywności oraz grafów historii powtórek
+       dostarcza użytkownikowi przydatnych informacji o jego postępach.
+
+
+
+
+                                            52
+Bibliografia
+
+
+[1] „Forgetting curve,” [Online]. Available:
+     https://supermemo.guru/wiki/Forgetting_curve. [Data uzyskania dostępu: 01 01
+     2025].
+[2] „Na czym polega metoda inteligentnych powtórek SuperMemo?,” [Online].
+     Available: https://www.supermemo.com/pl/metoda-supermemo. [Data uzyskania
+     dostępu: 01 01 2025].
+[3] „Duolingo,” [Online]. Available: https://www.duolingo.com. [Data uzyskania
+     dostępu: 09 01 2025].
+[4] „Memrise,” [Online]. Available: https://www.memrise.com/. [Data uzyskania
+     dostępu: 09 01 2025].
+[5] „Anki,” [Online]. Available: https://apps.ankiweb.net/. [Data uzyskania dostępu:
+     09 01 2025].
+[6] „Quizlet,” [Online]. Available: https://quizlet.com. [Data uzyskania dostępu: 09
+     01 2025].
+[7] „Algorithm SM-2,” [Online]. Available:
+     https://supermemo.guru/wiki/SuperMemo_1.0_for_DOS_(1987)#Algorithm_SM-
+     2. [Data uzyskania dostępu: 01 01 2025].
+[8] „History of the optimization of repetition spacing,” 09 01 2025. [Online].
+     Available:
+     https://supermemo.guru/wiki/History_of_the_optimization_of_repetition_spacing.
+[9] „A Trainable Spaced Repetition Model for Language Learning,” [Online].
+     Available: https://research.duolingo.com/papers/settles.acl16.pdf. [Data uzyskania
+     dostępu: 09 01 2025].
+[10] „History of spaced repetition,” [Online]. Available:
+     https://supermemo.guru/wiki/History_of_spaced_repetition. [Data uzyskania
+     dostępu: 01 01 2025].
+[11] „Memory: A Contribution to Experimental Psychology,” [Online]. Available:
+     https://psychclassics.yorku.ca/Ebbinghaus/index.htm. [Data uzyskania dostępu: 01
+     01 2025].
+[12] „TypeScript for JavaScript Programmers,” [Online]. Available:
+     https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html.
+     [Data uzyskania dostępu: 01 01 2025].
+[13] „React Introduction,” [Online]. Available: https://www.geeksforgeeks.org/reactjs-
+     introduction/. [Data uzyskania dostępu: 01 01 2025].
+[14] „What is Tailwind CSS?,” [Online]. Available:
+     https://www.geeksforgeeks.org/what-is-tailwind-css. [Data uzyskania dostępu: 01
+     01 2025].
+[15] „About Node.js,” [Online]. Available: https://nodejs.org/en/about. [Data
+     uzyskania dostępu: 01 01 2025].
+[16] „Introduction | Electron,” [Online]. Available:
+     https://www.electronjs.org/docs/latest. [Data uzyskania dostępu: 01 01 2025].
+[17] „Electron Internals: Building Chromium as a Library,” [Online]. Available:
+     https://www.electronjs.org/blog/electron-internals-building-chromium-as-a-
+     library. [Data uzyskania dostępu: 01 01 2025].
+
+                                          53
+[18] „About SQLite,” [Online]. Available: https://www.sqlite.org/about.html. [Data
+     uzyskania dostępu: 01 01 2025].
+[19] „What is Docker?,” [Online]. Available: https://docs.docker.com/get-
+     started/docker-overview/. [Data uzyskania dostępu: 01 01 2025].
+[20] „Bulletproof React,” [Online]. Available: https://github.com/alan2207/bulletproof-
+     react. [Data uzyskania dostępu: 05 01 2025].
+
+
+
+
+                                          54
+

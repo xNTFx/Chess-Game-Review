@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
+import { getEngineCacheVersion } from "../engine/engineVersion";
 import {
   boardAtom,
   currentPositionAtom,
@@ -45,10 +46,12 @@ function useFenEval(
       if (!engine?.isReady()) throw new Error("Engine not ready");
 
       const actualEngineName = engine.getName();
+      const engineVersion = getEngineCacheVersion(actualEngineName);
       const savedEval = savedEvalsRef.current[fen];
       if (
         savedEval &&
         savedEval.engine === actualEngineName &&
+        savedEval.engineVersion === engineVersion &&
         savedEval.lines[0]?.depth >= depth
       ) {
         setPartialEval?.(savedEval);
@@ -71,7 +74,7 @@ function useFenEval(
         ) {
           setSavedEvals((prev) => ({
             ...prev,
-            [fen]: { ...rawEval, engine: actualEngineName },
+            [fen]: { ...rawEval, engine: actualEngineName, engineVersion },
           }));
           return rawEval;
         }

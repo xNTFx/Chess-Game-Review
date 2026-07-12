@@ -14,9 +14,13 @@ import {
   CustomEngineWorkerResponse,
 } from "./customEngineWorkerMessages";
 import {
-  analyzeWithCustomEngine,
+  analyzeWithCustomEngine as analyzeWithLegacyCustomEngine,
   clearCustomEngineSearchCache,
 } from "./search";
+import {
+  analyzeWithNewCustomEngine,
+  clearNewCustomEngineSearchCache,
+} from "./search/search";
 
 let searchId = 0;
 let skillLevel = 20;
@@ -39,6 +43,7 @@ async function handleMessage(message: CustomEngineWorkerRequest) {
       case "shutdown":
         searchId += 1;
         clearCustomEngineSearchCache();
+        clearNewCustomEngineSearchCache();
         postResponse({ id: message.id, type: "shutdown" });
         return;
 
@@ -109,7 +114,7 @@ async function evaluateGame(
         ],
       });
     } else {
-      const result = await analyzeWithCustomEngine({
+      const result = await analyzePosition({
         fen,
         depth: getSkillAdjustedDepth(depth),
         multiPv,
@@ -165,7 +170,7 @@ function evaluatePositionWithUpdate(
   const currentSearchId = searchId + 1;
   searchId = currentSearchId;
 
-  return analyzeWithCustomEngine({
+  return analyzePosition({
     fen,
     depth: getSkillAdjustedDepth(depth),
     multiPv,
@@ -173,6 +178,18 @@ function evaluatePositionWithUpdate(
       postResponse({ id: requestId, type: "partial", position }),
     shouldStop: () => currentSearchId !== searchId,
   });
+}
+
+async function analyzePosition(
+  params: Parameters<typeof analyzeWithNewCustomEngine>[0],
+): Promise<PositionEval> {
+  try {
+    return await analyzeWithNewCustomEngine(params);
+  } catch (error) {
+    console.warn("New custom engine failed, falling back to legacy search", error);
+
+    return analyzeWithLegacyCustomEngine(params);
+  }
 }
 
 function setSkillLevel(newSkillLevel: number) {
