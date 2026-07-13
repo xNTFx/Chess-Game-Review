@@ -9,3 +9,4 @@ export * from "./move";
 export * from "./movegen";
 export * from "./perft";
 export * from "./zobrist";
+export * from "./selfTest";

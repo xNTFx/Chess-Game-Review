@@ -32,6 +32,8 @@ export function orderMoves(
   ply: number,
   ttMove?: number,
 ): number[] {
+  if (!context.config.useMoveOrdering) return moves;
+
   return moves.sort(
     (a, b) =>
       scoreMove(board, b, context, ply, ttMove) -

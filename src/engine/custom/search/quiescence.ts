@@ -40,10 +40,13 @@ export function quiescence(
     return { score: standPat, pv: [] };
   }
 
-  let searchAlpha = alpha;
+  let searchAlpha = context.config.useAlphaBeta ? alpha : -MATE_SCORE;
+  const searchBeta = context.config.useAlphaBeta ? beta : MATE_SCORE;
 
   if (!inCheck) {
-    if (standPat >= beta) return { score: standPat, pv: [] };
+    if (context.config.useAlphaBeta && standPat >= beta) {
+      return { score: standPat, pv: [] };
+    }
     if (standPat > searchAlpha) searchAlpha = standPat;
   }
 
@@ -68,7 +71,7 @@ export function quiescence(
 
     const child = quiescence(
       board,
-      -beta,
+      -searchBeta,
       -searchAlpha,
       ply + 1,
       context,
@@ -84,7 +87,7 @@ export function quiescence(
 
     if (score > searchAlpha) {
       searchAlpha = score;
-      if (searchAlpha >= beta) {
+      if (context.config.useAlphaBeta && searchAlpha >= searchBeta) {
         context.stats.cutoffs += 1;
         context.stats.betaCutoffs += 1;
         break;

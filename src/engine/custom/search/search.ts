@@ -5,12 +5,15 @@ import {
   BISHOP,
   Color,
   KNIGHT,
+  PAWN,
   QUEEN,
   ROOK,
   WHITE,
-  oppositeColor,
 } from "../core/constants";
-import { evaluateBoardFromSideToMove } from "../core/evaluate";
+import {
+  evaluateBoardFromSideToMove,
+  evaluateMaterialFromSideToMove,
+} from "../core/evaluate";
 import { parseFen } from "../core/fen";
 import {
   makeMove,
@@ -42,6 +45,7 @@ import {
   PvsParams,
   RootLine,
   SearchContext,
+  DEFAULT_SEARCH_CONFIG,
   SearchNode,
   SearchOptions,
   SearchStats,
@@ -49,6 +53,9 @@ import {
 } from "./types";
 
 const ASPIRATION_WINDOW = 45;
+// Aplikacja przekazuje zwykle głębokości 12–20 jako poziomy jakości. Są one
+// mapowane na rozsądny limit obliczeniowy, aby analiza interaktywna nie
+// blokowała interfejsu. Jawny `config.maxTimeMs` nadal pozwala na eksperymenty.
 const MAX_EFFECTIVE_DEPTH = 8;
 
 export async function analyzeWithNewCustomEngine({
@@ -57,11 +64,17 @@ export async function analyzeWithNewCustomEngine({
   multiPv,
   onUpdate,
   shouldStop,
+  config: requestedConfig,
 }: SearchOptions): Promise<PositionEval> {
   const board = parseFen(fen);
   const effectiveDepth = getNewCustomEffectiveDepth(depth);
   const startedAt = performance.now();
-  const context = createSearchContext(startedAt, effectiveDepth, shouldStop);
+  const context = createSearchContext(
+    startedAt,
+    effectiveDepth,
+    shouldStop,
+    { ...DEFAULT_SEARCH_CONFIG, ...requestedConfig },
+  );
   const rootLegalMoves = generateLegalMoves(board);
 
   sharedTranspositionTable.nextGeneration();
@@ -100,6 +113,10 @@ export async function analyzeWithNewCustomEngine({
       searchWindow.beta,
       context,
     );
+
+    // Nie publikujemy częściowo przeszukanej iteracji. Wynik z poprzedniej,
+    // ukończonej głębokości jest zawsze spójniejszy po przekroczeniu limitu.
+    if (context.stopped) break;
 
     if (
       rootLines[0] &&
@@ -150,7 +167,9 @@ function searchRoot(
   beta: number,
   context: SearchContext,
 ): RootLine[] {
-  const ttMove = sharedTranspositionTable.getBestMove(board);
+  const ttMove = context.config.useTranspositionTable
+    ? sharedTranspositionTable.getBestMove(board)
+    : undefined;
   const legalMoves = orderMoves(
     board,
     generateLegalMoves(board),
@@ -161,32 +180,25 @@ function searchRoot(
   const rootLines: RootLine[] = [];
   let bestScore = -INF;
   let bestMove: number | undefined;
-  let searchAlpha = multiPv > 1 ? -INF : alpha;
-  const searchBeta = multiPv > 1 ? INF : beta;
+  const alphaBetaEnabled = context.config.useAlphaBeta;
+  let searchAlpha = !alphaBetaEnabled || multiPv > 1 ? -INF : alpha;
+  const searchBeta = !alphaBetaEnabled || multiPv > 1 ? INF : beta;
 
   for (const move of legalMoves) {
     if (shouldStopSearch(context)) break;
     if (!makeMove(board, move)) continue;
 
-    const forcedMate = isKingInCheck(board, board.sideToMove)
-      ? findForcedMate(board, 6, oppositeColor(board.sideToMove), context)
-      : undefined;
-    const child = forcedMate
-      ? {
-          score: -(MATE_SCORE - forcedMate.length - 1),
-          pv: forcedMate,
-        }
-      : pvs(
-          {
-            board,
-            depth: depth - 1,
-            alpha: -searchBeta,
-            beta: -searchAlpha,
-            ply: 1,
-            allowNullMove: true,
-          },
-          context,
-        );
+    const child = pvs(
+      {
+        board,
+        depth: depth - 1,
+        alpha: -searchBeta,
+        beta: -searchAlpha,
+        ply: 1,
+        allowNullMove: true,
+      },
+      context,
+    );
     const score = -child.score;
     undoMove(board);
 
@@ -197,17 +209,15 @@ function searchRoot(
       bestMove = move;
     }
 
-    if (multiPv <= 1 && score > searchAlpha) searchAlpha = score;
+    if (alphaBetaEnabled && multiPv <= 1 && score > searchAlpha) {
+      searchAlpha = score;
+    }
   }
 
   if (bestMove !== undefined) {
-    sharedTranspositionTable.store(
-      board,
-      depth,
-      bestScore,
-      "exact",
-      bestMove,
-    );
+    if (context.config.useTranspositionTable) {
+      sharedTranspositionTable.store(board, depth, bestScore, "exact", bestMove);
+    }
   }
 
   return rootLines.sort((a, b) => b.score - a.score).slice(0, multiPv);
@@ -219,26 +229,28 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
   context.stats.selectiveDepth = Math.max(context.stats.selectiveDepth, ply);
 
   if (ply >= MAX_PLY) {
-    return { score: evaluateBoardFromSideToMove(board), pv: [] };
+    return { score: evaluateForContext(board, context), pv: [] };
   }
 
   if (context.stats.nodes % 2048 === 0 && shouldStopSearch(context)) {
-    return { score: evaluateBoardFromSideToMove(board), pv: [] };
+    return { score: evaluateForContext(board, context), pv: [] };
   }
 
-  if (depth <= 0) return quiescence(board, alpha, beta, ply, context);
+  if (depth <= 0) {
+    return context.config.useQuiescence
+      ? quiescence(board, alpha, beta, ply, context)
+      : { score: evaluateForContext(board, context), pv: [] };
+  }
   if (board.halfmoveClock >= 100) return { score: 0, pv: [] };
 
+  const alphaBetaEnabled = context.config.useAlphaBeta;
   const alphaOriginal = alpha;
-  let searchAlpha = alpha;
+  let searchAlpha = alphaBetaEnabled ? alpha : -INF;
+  const searchBeta = alphaBetaEnabled ? beta : INF;
   const inCheck = isKingInCheck(board, board.sideToMove);
-  const ttProbe = sharedTranspositionTable.probe(
-    board,
-    depth,
-    searchAlpha,
-    beta,
-    context.stats,
-  );
+  const ttProbe = context.config.useTranspositionTable
+    ? sharedTranspositionTable.probe(board, depth, searchAlpha, searchBeta, context.stats)
+    : {};
 
   if (ttProbe.score !== undefined) {
     return {
@@ -247,9 +259,14 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
     };
   }
 
-  const staticEval = evaluateBoardFromSideToMove(board);
+  const staticEval = evaluateForContext(board, context);
+  // Szach jest silnym sygnałem taktycznym. Dodatkowy półruch zmniejsza
+  // efekt horyzontu, ale pozostaje ograniczony przez MAX_PLY.
+  const extension =
+    context.config.useCheckExtensions && inCheck && depth <= 8 ? 1 : 0;
 
   if (
+    alphaBetaEnabled &&
     !inCheck &&
     depth <= 2 &&
     Math.abs(beta) < MATE_THRESHOLD &&
@@ -259,11 +276,13 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
   }
 
   if (
+    alphaBetaEnabled &&
+    context.config.useNullMove &&
     allowNullMove &&
     depth >= 3 &&
     !inCheck &&
     Math.abs(beta) < MATE_THRESHOLD &&
-    hasNonPawnMaterial(board, board.sideToMove)
+    hasSufficientMaterialForNullMove(board, board.sideToMove)
   ) {
     const undo = makeNullMove(board);
     const reduction = depth >= 6 ? 3 : 2;
@@ -271,8 +290,8 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
       {
         board,
         depth: depth - 1 - reduction,
-        alpha: -beta,
-        beta: -beta + 1,
+        alpha: -searchBeta,
+        beta: -searchBeta + 1,
         ply: ply + 1,
         allowNullMove: false,
       },
@@ -281,9 +300,11 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
     const score = -nullResult.score;
     undoNullMove(board, undo);
 
-    if (score >= beta) {
+    if (alphaBetaEnabled && score >= searchBeta) {
       context.stats.nullMoveCutoffs += 1;
-      sharedTranspositionTable.store(board, depth, score, "lower");
+      if (context.config.useTranspositionTable) {
+        sharedTranspositionTable.store(board, depth, score, "lower");
+      }
       return { score, pv: [] };
     }
   }
@@ -324,8 +345,10 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
 
     if (!makeMove(board, move)) continue;
 
-    const reduction = getLateMoveReduction(depth, moveIndex, isQuiet, inCheck);
-    const childDepth = depth - 1;
+    const reduction = context.config.useLateMoveReductions
+      ? getLateMoveReduction(depth, moveIndex, isQuiet, inCheck)
+      : 0;
+    const childDepth = depth - 1 + extension;
     let child: SearchNode;
 
     if (searchedMoves === 0) {
@@ -396,7 +419,7 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
     if (score > searchAlpha) {
       searchAlpha = score;
 
-      if (searchAlpha >= beta) {
+      if (alphaBetaEnabled && searchAlpha >= searchBeta) {
         context.stats.cutoffs += 1;
         context.stats.betaCutoffs += 1;
         if (isQuiet) {
@@ -412,85 +435,17 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
     return { score: staticEval, pv: [] };
   }
 
-  sharedTranspositionTable.store(
-    board,
-    depth,
-    bestScore,
-    getTranspositionFlag(bestScore, alphaOriginal, beta),
-    bestMove,
-  );
+  if (context.config.useTranspositionTable) {
+    sharedTranspositionTable.store(
+      board,
+      depth,
+      bestScore,
+      getTranspositionFlag(bestScore, alphaOriginal, searchBeta),
+      bestMove,
+    );
+  }
 
   return { score: bestScore, pv: bestPv };
-}
-
-function findForcedMate(
-  board: ChessBoard,
-  depth: number,
-  matingColor: Color,
-  context: SearchContext,
-): number[] | undefined {
-  if (depth < 0 || shouldStopSearch(context)) return undefined;
-
-  const legalMoves = generateLegalMoves(board);
-  const sideToMoveIsMating = board.sideToMove === matingColor;
-
-  if (legalMoves.length === 0) {
-    return isKingInCheck(board, board.sideToMove) && !sideToMoveIsMating
-      ? []
-      : undefined;
-  }
-
-  if (depth === 0) return undefined;
-
-  const orderedMoves = legalMoves.sort(
-    (first, second) =>
-      getMateMovePriority(board, second) - getMateMovePriority(board, first),
-  );
-
-  if (sideToMoveIsMating) {
-    for (const move of orderedMoves) {
-      if (!makeMove(board, move)) continue;
-
-      const childPv = findForcedMate(board, depth - 1, matingColor, context);
-      undoMove(board);
-
-      if (childPv) return [move, ...childPv];
-    }
-
-    return undefined;
-  }
-
-  let longestDefensePv: number[] | undefined = [];
-  let defenseMove: number | undefined;
-
-  for (const move of orderedMoves) {
-    if (!makeMove(board, move)) continue;
-
-    const childPv = findForcedMate(board, depth - 1, matingColor, context);
-    undoMove(board);
-
-    if (!childPv) return undefined;
-
-    if (!longestDefensePv || childPv.length > longestDefensePv.length) {
-      longestDefensePv = childPv;
-      defenseMove = move;
-    }
-  }
-
-  return defenseMove === undefined ? undefined : [defenseMove, ...longestDefensePv];
-}
-
-function getMateMovePriority(board: ChessBoard, move: number): number {
-  if (!makeMove(board, move)) return -INF;
-
-  const givesCheck = isKingInCheck(board, board.sideToMove);
-  const isMate = givesCheck && generateLegalMoves(board).length === 0;
-  undoMove(board);
-
-  if (isMate) return 2;
-  if (givesCheck) return 1;
-
-  return 0;
 }
 
 function getLateMoveReduction(
@@ -609,6 +564,7 @@ function createSearchContext(
   startedAt: number,
   depth: number,
   shouldStop?: () => boolean,
+  config = DEFAULT_SEARCH_CONFIG,
 ): SearchContext {
   return {
     stats: createSearchStats(),
@@ -616,10 +572,17 @@ function createSearchContext(
     killerMoves: Array.from({ length: MAX_PLY + 1 }, () => []),
     history: new Int32Array(8192),
     startedAt,
-    maxTimeMs: getSearchTimeLimitMs(depth),
+    maxTimeMs: config.maxTimeMs ?? getSearchTimeLimitMs(depth),
     shouldStop,
     stopped: false,
+    config,
   };
+}
+
+function evaluateForContext(board: ChessBoard, context: SearchContext): number {
+  return context.config.evaluation === "material"
+    ? evaluateMaterialFromSideToMove(board)
+    : evaluateBoardFromSideToMove(board);
 }
 
 function createSearchStats(): SearchStats {
@@ -636,10 +599,18 @@ function createSearchStats(): SearchStats {
   };
 }
 
-function hasNonPawnMaterial(board: ChessBoard, color: Color): boolean {
-  return [KNIGHT, BISHOP, ROOK, QUEEN].some(
-    (piece) =>
-      popcountParts(board.pieces[color].lo[piece], board.pieces[color].hi[piece]) >
-      0,
+function hasSufficientMaterialForNullMove(board: ChessBoard, color: Color): boolean {
+  const nonPawnPieces = [KNIGHT, BISHOP, ROOK, QUEEN].reduce(
+    (count, piece) =>
+      count + popcountParts(board.pieces[color].lo[piece], board.pieces[color].hi[piece]),
+    0,
   );
+  const pawns = popcountParts(
+    board.pieces[color].lo[PAWN],
+    board.pieces[color].hi[PAWN],
+  );
+
+  // Null move bywa błędny w zugzwangu. Wymagamy więc kilku aktywnych
+  // jednostek materiału, zamiast włączać go w każdej końcówce z figurą.
+  return nonPawnPieces >= 2 || pawns >= 4;
 }

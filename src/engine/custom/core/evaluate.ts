@@ -145,6 +145,12 @@ export function evaluateBoardFromSideToMove(board: ChessBoard): number {
   return board.sideToMove === WHITE ? score : -score;
 }
 
+/** Minimalny profil oceny używany jako kontrola eksperymentalna. */
+export function evaluateMaterialFromSideToMove(board: ChessBoard): number {
+  const score = hasInsufficientMatingMaterial(board) ? 0 : board.evalState.material;
+  return board.sideToMove === WHITE ? score : -score;
+}
+
 export function getPieceValue(piece: Piece): number {
   return PIECE_VALUES[piece];
 }
