@@ -68,7 +68,8 @@ export interface RootLine extends SearchNode {
 }
 
 export interface TranspositionEntry {
-  key: string;
+  keyLo: number;
+  keyHi: number;
   depth: number;
   score: number;
   flag: TranspositionFlag;

@@ -7,7 +7,6 @@ import {
   getMoveCapturedPiece,
   getMovePromotionPiece,
   isCaptureMove,
-  isPromotionMove,
 } from "../core/move";
 import { generateLegalMoves } from "../core/movegen";
 import { getCaptureGain, orderMoves } from "./moveOrdering";
@@ -50,9 +49,7 @@ export function quiescence(
     if (standPat > searchAlpha) searchAlpha = standPat;
   }
 
-  const legalMoves = generateLegalMoves(board, { capturesOnly: !inCheck }).filter(
-    (move) => inCheck || isCaptureMove(move) || isPromotionMove(move),
-  );
+  const legalMoves = generateLegalMoves(board, { capturesOnly: !inCheck });
 
   if (legalMoves.length === 0) {
     return inCheck

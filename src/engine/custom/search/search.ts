@@ -56,7 +56,6 @@ const ASPIRATION_WINDOW = 45;
 // Aplikacja przekazuje zwykle głębokości 12–20 jako poziomy jakości. Są one
 // mapowane na rozsądny limit obliczeniowy, aby analiza interaktywna nie
 // blokowała interfejsu. Jawny `config.maxTimeMs` nadal pozwala na eksperymenty.
-const MAX_EFFECTIVE_DEPTH = 8;
 
 export async function analyzeWithNewCustomEngine({
   fen,
@@ -151,12 +150,9 @@ export function clearNewCustomEngineSearchCache() {
 }
 
 export function getNewCustomEffectiveDepth(requestedDepth: number): number {
-  if (requestedDepth <= 5) return Math.max(1, Math.floor(requestedDepth));
-  if (requestedDepth <= 10) return 5;
-  if (requestedDepth <= 18) return 6;
-  if (requestedDepth <= 24) return 7;
-
-  return MAX_EFFECTIVE_DEPTH;
+  // Iterative deepening oraz limit czasu ograniczają realny koszt wyszukiwania.
+  // Nie obniżamy już cicho żądanej głębokości (np. 16 -> 6).
+  return Math.max(1, Math.min(MAX_PLY - 2, Math.floor(requestedDepth)));
 }
 
 function searchRoot(
@@ -216,7 +212,14 @@ function searchRoot(
 
   if (bestMove !== undefined) {
     if (context.config.useTranspositionTable) {
-      sharedTranspositionTable.store(board, depth, bestScore, "exact", bestMove);
+      sharedTranspositionTable.store(
+        board,
+        depth,
+        bestScore,
+        getTranspositionFlag(bestScore, alpha, beta),
+        bestMove,
+        0,
+      );
     }
   }
 
@@ -249,7 +252,14 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
   const searchBeta = alphaBetaEnabled ? beta : INF;
   const inCheck = isKingInCheck(board, board.sideToMove);
   const ttProbe = context.config.useTranspositionTable
-    ? sharedTranspositionTable.probe(board, depth, searchAlpha, searchBeta, context.stats)
+    ? sharedTranspositionTable.probe(
+        board,
+        depth,
+        searchAlpha,
+        searchBeta,
+        ply,
+        context.stats,
+      )
     : {};
 
   if (ttProbe.score !== undefined) {
@@ -303,7 +313,7 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
     if (alphaBetaEnabled && score >= searchBeta) {
       context.stats.nullMoveCutoffs += 1;
       if (context.config.useTranspositionTable) {
-        sharedTranspositionTable.store(board, depth, score, "lower");
+        sharedTranspositionTable.store(board, depth, score, "lower", undefined, ply);
       }
       return { score, pv: [] };
     }
@@ -442,6 +452,7 @@ function pvs(params: PvsParams, context: SearchContext): SearchNode {
       bestScore,
       getTranspositionFlag(bestScore, alphaOriginal, searchBeta),
       bestMove,
+      ply,
     );
   }
 

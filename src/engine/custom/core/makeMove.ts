@@ -173,8 +173,11 @@ export function undoMove(board: ChessBoard): boolean {
   board.fullmoveNumber = undo.fullmoveNumber;
   board.zobristLo = undo.zobristLo;
   board.zobristHi = undo.zobristHi;
-  board.evalState = { ...undo.evalState };
-  board.kingSquare = [...undo.kingSquare];
+  board.evalState.material = undo.evalMaterial;
+  board.evalState.pst = undo.evalPst;
+  board.evalState.score = undo.evalScore;
+  board.kingSquare[WHITE] = undo.whiteKingSquare;
+  board.kingSquare[BLACK] = undo.blackKingSquare;
 
   if (board.pieceBySquare[from] !== encodePiece(movingColor, movingPiece)) {
     throw new Error("Undo failed to restore moved piece");
@@ -205,8 +208,11 @@ export function undoNullMove(board: ChessBoard, undo: UndoState) {
   board.fullmoveNumber = undo.fullmoveNumber;
   board.zobristLo = undo.zobristLo;
   board.zobristHi = undo.zobristHi;
-  board.evalState = { ...undo.evalState };
-  board.kingSquare = [...undo.kingSquare];
+  board.evalState.material = undo.evalMaterial;
+  board.evalState.pst = undo.evalPst;
+  board.evalState.score = undo.evalScore;
+  board.kingSquare[WHITE] = undo.whiteKingSquare;
+  board.kingSquare[BLACK] = undo.blackKingSquare;
 }
 
 function addPiece(board: ChessBoard, square: number, encodedPiece: number) {
@@ -243,8 +249,11 @@ function createUndoState(
     fullmoveNumber: board.fullmoveNumber,
     zobristLo: board.zobristLo,
     zobristHi: board.zobristHi,
-    evalState: { ...board.evalState },
-    kingSquare: [...board.kingSquare],
+    evalMaterial: board.evalState.material,
+    evalPst: board.evalState.pst,
+    evalScore: board.evalState.score,
+    whiteKingSquare: board.kingSquare[WHITE],
+    blackKingSquare: board.kingSquare[BLACK],
   };
 }
 

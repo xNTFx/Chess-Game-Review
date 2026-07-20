@@ -35,8 +35,11 @@ export interface UndoState {
   fullmoveNumber: number;
   zobristLo: number;
   zobristHi: number;
-  evalState: EvalState;
-  kingSquare: [number, number];
+  evalMaterial: number;
+  evalPst: number;
+  evalScore: number;
+  whiteKingSquare: number;
+  blackKingSquare: number;
 }
 
 export interface ChessBoard {
